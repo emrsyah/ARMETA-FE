@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { BookOpenIcon, LayoutDashboardIcon, MessageCircleIcon, TargetIcon } from 'lucide-react'
 
 export function AppSidebar() {
   const navigate = useNavigate()
@@ -19,27 +20,27 @@ export function AppSidebar() {
     {
       title: 'Beranda',
       url: '/a/home',
-      icon: '🏠',
+      icon: <LayoutDashboardIcon size={16} />,
     },
     {
       title: 'Mata Kuliah',
       url: '/a/courses',
-      icon: '📚',
+      icon: <BookOpenIcon size={16} />,
     },
     {
       title: 'Forum',
       url: '/a/forum',
-      icon: '💬',
+      icon: <MessageCircleIcon size={16} />,
     },
     {
       title: 'ARME',
       url: '/a/arme',
-      icon: '🎯',
+      icon: <TargetIcon size={16} />,
     },
   ]
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className='bg-white '>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
