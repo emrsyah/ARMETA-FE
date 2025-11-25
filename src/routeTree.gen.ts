@@ -10,33 +10,86 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as appARouteImport } from './routes/(app)/a'
+import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
+import { Route as appAForumRouteImport } from './routes/(app)/a.forum'
+import { Route as appACoursesRouteImport } from './routes/(app)/a.courses'
+import { Route as appAArmeRouteImport } from './routes/(app)/a.arme'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const appARoute = appARouteImport.update({
+  id: '/(app)/a',
+  path: '/a',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const appAHomeRoute = appAHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => appARoute,
+} as any)
+const appAForumRoute = appAForumRouteImport.update({
+  id: '/forum',
+  path: '/forum',
+  getParentRoute: () => appARoute,
+} as any)
+const appACoursesRoute = appACoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => appARoute,
+} as any)
+const appAArmeRoute = appAArmeRouteImport.update({
+  id: '/arme',
+  path: '/arme',
+  getParentRoute: () => appARoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/a': typeof appARouteWithChildren
+  '/a/arme': typeof appAArmeRoute
+  '/a/courses': typeof appACoursesRoute
+  '/a/forum': typeof appAForumRoute
+  '/a/home': typeof appAHomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/a': typeof appARouteWithChildren
+  '/a/arme': typeof appAArmeRoute
+  '/a/courses': typeof appACoursesRoute
+  '/a/forum': typeof appAForumRoute
+  '/a/home': typeof appAHomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/(app)/a': typeof appARouteWithChildren
+  '/(app)/a/arme': typeof appAArmeRoute
+  '/(app)/a/courses': typeof appACoursesRoute
+  '/(app)/a/forum': typeof appAForumRoute
+  '/(app)/a/home': typeof appAHomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/a' | '/a/arme' | '/a/courses' | '/a/forum' | '/a/home'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/a' | '/a/arme' | '/a/courses' | '/a/forum' | '/a/home'
+  id:
+    | '__root__'
+    | '/'
+    | '/(app)/a'
+    | '/(app)/a/arme'
+    | '/(app)/a/courses'
+    | '/(app)/a/forum'
+    | '/(app)/a/home'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  appARoute: typeof appARouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +101,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(app)/a': {
+      id: '/(app)/a'
+      path: '/a'
+      fullPath: '/a'
+      preLoaderRoute: typeof appARouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/a/home': {
+      id: '/(app)/a/home'
+      path: '/home'
+      fullPath: '/a/home'
+      preLoaderRoute: typeof appAHomeRouteImport
+      parentRoute: typeof appARoute
+    }
+    '/(app)/a/forum': {
+      id: '/(app)/a/forum'
+      path: '/forum'
+      fullPath: '/a/forum'
+      preLoaderRoute: typeof appAForumRouteImport
+      parentRoute: typeof appARoute
+    }
+    '/(app)/a/courses': {
+      id: '/(app)/a/courses'
+      path: '/courses'
+      fullPath: '/a/courses'
+      preLoaderRoute: typeof appACoursesRouteImport
+      parentRoute: typeof appARoute
+    }
+    '/(app)/a/arme': {
+      id: '/(app)/a/arme'
+      path: '/arme'
+      fullPath: '/a/arme'
+      preLoaderRoute: typeof appAArmeRouteImport
+      parentRoute: typeof appARoute
+    }
   }
 }
 
+interface appARouteChildren {
+  appAArmeRoute: typeof appAArmeRoute
+  appACoursesRoute: typeof appACoursesRoute
+  appAForumRoute: typeof appAForumRoute
+  appAHomeRoute: typeof appAHomeRoute
+}
+
+const appARouteChildren: appARouteChildren = {
+  appAArmeRoute: appAArmeRoute,
+  appACoursesRoute: appACoursesRoute,
+  appAForumRoute: appAForumRoute,
+  appAHomeRoute: appAHomeRoute,
+}
+
+const appARouteWithChildren = appARoute._addFileChildren(appARouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  appARoute: appARouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
