@@ -222,7 +222,6 @@ function AppLayout() {
 - **Keterangan**: Menggunakan titik sebagai separator, kebab-case
 
 ### Component Files
-- **Regular Components**: PascalCase (contoh: `AppSidebar.tsx`, `TopNavigation.tsx`)
 - **UI Components**: kebab-case (contoh: `app-sidebar.tsx`, `top-navigation.tsx`)
 - **Hook Files**: camelCase dengan prefix `use` (contoh: `use-mobile.ts`)
 
