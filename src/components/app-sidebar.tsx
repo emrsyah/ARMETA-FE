@@ -1,17 +1,16 @@
-import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { BookOpenIcon, LayoutDashboardIcon, MessageCircleIcon, TargetIcon } from 'lucide-react'
+import { Button } from './ui/button'
 
 export function AppSidebar() {
   const navigate = useNavigate()
@@ -54,7 +53,6 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -63,10 +61,10 @@ export function AppSidebar() {
                     asChild
                     isActive={window.location.pathname === item.url}
                   >
-                    <button onClick={() => navigate({ to: item.url })}>
-                      <span className="text-lg">{item.icon}</span>
+                    <Button onClick={() => navigate({ to: item.url })} variant={'ghost'} size={'lg'} className='w-full text-start! justify-start!'>
+                      <span className="text-lg text-start">{item.icon}</span>
                       <span>{item.title}</span>
-                    </button>
+                    </Button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

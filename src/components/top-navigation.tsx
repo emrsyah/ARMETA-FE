@@ -7,10 +7,7 @@ export function TopNavigation() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       <SidebarTrigger className="-ml-1" />
-      <div className="ml-auto flex items-center space-x-2">
-        <div className="hidden md:flex">
-          <span className="font-bold text-lg">ARMETA</span>
-        </div>
+      <div className="ml-auto flex items-center space-x-2 w-full justify-between">
         <div className="flex-1 px-4">
           <div className="relative max-w-md">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

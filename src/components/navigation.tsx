@@ -22,7 +22,7 @@ export function Navigation() {
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {menuItems.map((item) => (
-                <button
+                <Button
                   key={item.path}
                   onClick={() => navigate({ to: item.path })}
                   className={cn(
@@ -34,7 +34,7 @@ export function Navigation() {
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -50,11 +50,11 @@ export function Navigation() {
       <div className="sm:hidden">
         <div className="pt-2 pb-3 space-y-1">
           {menuItems.map((item) => (
-            <button
+            <Button
               key={item.path}
               onClick={() => navigate({ to: item.path })}
               className={cn(
-                "block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left",
+                "block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left cursor-pointer",
                 window.location.pathname === item.path
                   ? "bg-indigo-50 border-indigo-500 text-indigo-700"
                   : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
@@ -62,7 +62,7 @@ export function Navigation() {
             >
               <span className="mr-2">{item.icon}</span>
               {item.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
