@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as appARouteImport } from './routes/(app)/a'
 import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
 import { Route as appAForumRouteImport } from './routes/(app)/a.forum'
-import { Route as appACoursesRouteImport } from './routes/(app)/a.courses'
 import { Route as appAArmeRouteImport } from './routes/(app)/a.arme'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,11 +35,6 @@ const appAForumRoute = appAForumRouteImport.update({
   path: '/forum',
   getParentRoute: () => appARoute,
 } as any)
-const appACoursesRoute = appACoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
-  getParentRoute: () => appARoute,
-} as any)
 const appAArmeRoute = appAArmeRouteImport.update({
   id: '/arme',
   path: '/arme',
@@ -51,7 +45,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
   '/a/arme': typeof appAArmeRoute
-  '/a/courses': typeof appACoursesRoute
   '/a/forum': typeof appAForumRoute
   '/a/home': typeof appAHomeRoute
 }
@@ -59,7 +52,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
   '/a/arme': typeof appAArmeRoute
-  '/a/courses': typeof appACoursesRoute
   '/a/forum': typeof appAForumRoute
   '/a/home': typeof appAHomeRoute
 }
@@ -68,21 +60,19 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/(app)/a': typeof appARouteWithChildren
   '/(app)/a/arme': typeof appAArmeRoute
-  '/(app)/a/courses': typeof appACoursesRoute
   '/(app)/a/forum': typeof appAForumRoute
   '/(app)/a/home': typeof appAHomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/a' | '/a/arme' | '/a/courses' | '/a/forum' | '/a/home'
+  fullPaths: '/' | '/a' | '/a/arme' | '/a/forum' | '/a/home'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/a' | '/a/arme' | '/a/courses' | '/a/forum' | '/a/home'
+  to: '/' | '/a' | '/a/arme' | '/a/forum' | '/a/home'
   id:
     | '__root__'
     | '/'
     | '/(app)/a'
     | '/(app)/a/arme'
-    | '/(app)/a/courses'
     | '/(app)/a/forum'
     | '/(app)/a/home'
   fileRoutesById: FileRoutesById
@@ -122,13 +112,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAForumRouteImport
       parentRoute: typeof appARoute
     }
-    '/(app)/a/courses': {
-      id: '/(app)/a/courses'
-      path: '/courses'
-      fullPath: '/a/courses'
-      preLoaderRoute: typeof appACoursesRouteImport
-      parentRoute: typeof appARoute
-    }
     '/(app)/a/arme': {
       id: '/(app)/a/arme'
       path: '/arme'
@@ -141,14 +124,12 @@ declare module '@tanstack/react-router' {
 
 interface appARouteChildren {
   appAArmeRoute: typeof appAArmeRoute
-  appACoursesRoute: typeof appACoursesRoute
   appAForumRoute: typeof appAForumRoute
   appAHomeRoute: typeof appAHomeRoute
 }
 
 const appARouteChildren: appARouteChildren = {
   appAArmeRoute: appAArmeRoute,
-  appACoursesRoute: appACoursesRoute,
   appAForumRoute: appAForumRoute,
   appAHomeRoute: appAHomeRoute,
 }
