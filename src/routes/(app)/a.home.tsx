@@ -1,3 +1,5 @@
+import MainInputCreation from '@/components/main-input-creation'
+import ReviewCard from '@/components/review-card'
 import { createFileRoute } from '@tanstack/react-router'
 import { BookMarked, Flag, Heart, MessageCircle, Share } from 'lucide-react'
 
@@ -7,14 +9,16 @@ export const Route = createFileRoute('/(app)/a/home')({
 
 function HomePage() {
   return (
-   <div className="space-y-6 pb-60">
+    <div className="space-y-6 pb-60">
+      <MainInputCreation />
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Selamat datang .."nama user"</h1>
-        
       </div>
 
+      <ReviewCard />
+
       {/* Dashboard Cards */}
-      
+
 
       {/* Recent Activities */}
       <div className="bg-white shadow rounded-lg">
@@ -36,9 +40,9 @@ function HomePage() {
               <div className="flex items-center space-x-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-900">
-                    Banyak yang ngeremehin bagian desain di matkul ini, padahal justru di situ akar masalah bug sering muncul. 
-                    Kalau dari awal desainnya udah robust dengan sequence diagram dan use case yang jelas, proses implementasi dan pengujiannya bakal jauh lebih lancar. 
-                    Aku sendiri pernah ngalamin waktu ngembangin ide web course tracker, hasil akhirnya gak sesuai ekspektasi karena desain databasenya belum matang. 
+                    Banyak yang ngeremehin bagian desain di matkul ini, padahal justru di situ akar masalah bug sering muncul.
+                    Kalau dari awal desainnya udah robust dengan sequence diagram dan use case yang jelas, proses implementasi dan pengujiannya bakal jauh lebih lancar.
+                    Aku sendiri pernah ngalamin waktu ngembangin ide web course tracker, hasil akhirnya gak sesuai ekspektasi karena desain databasenya belum matang.
                     Dari situ aku belajar hal penting bahwa validasi ide itu gak cukup lewat mockup aja, tapi juga perlu dilihat dari alur pengujian dan integrasi datanya.
                   </p>
                 </div>
@@ -55,7 +59,7 @@ function HomePage() {
               <BookMarked className="h-5 w-5 text-black-400 mr-2" />
               <span className="text-sm text-gray-600">7</span>
             </div>
-            
+
             <div className="flex items-center">
               <Heart className="h-5 w-5 text-black-400 mr-2" />
               <span className="text-sm text-gray-600">623</span>
