@@ -8,7 +8,6 @@ type Props = {
 const MainInputCreation = ({ type = "home" }: Props) => {
     const placeholder = type === "home" ? "Apa yang diulas hari ini?" : "Apa yang ingin di diskusikan hari ini?"
     return (
-        <div>
             <InputGroup className='h-12'>
                 <InputGroupInput className='h-16' placeholder={placeholder} />
                 <InputGroupAddon align="inline-end">
@@ -17,7 +16,6 @@ const MainInputCreation = ({ type = "home" }: Props) => {
                     </InputGroupButton>
                 </InputGroupAddon>
             </InputGroup>
-        </div>
 
     )
 }

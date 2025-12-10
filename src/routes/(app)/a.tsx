@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatch } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
@@ -9,6 +9,8 @@ export const Route = createFileRoute('/(app)/a')({
 })
 
 function ALayout() {
+  const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -19,7 +21,7 @@ function ALayout() {
             <div className='flex-1 grow'>
               <Outlet />
             </div>
-            <SidebarFilter />
+            {!isArmePage && <SidebarFilter />}
           </div>
         </div>
       </SidebarInset>
