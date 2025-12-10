@@ -1,4 +1,4 @@
-import { SidebarTrigger } from '@/components/ui/sidebar'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { User, Search } from 'lucide-react'
@@ -6,7 +6,7 @@ import { User, Search } from 'lucide-react'
 export function TopNavigation() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger className="-ml-1" />
+      
       <div className="ml-auto flex items-center space-x-2 w-full justify-between">
         <div className="flex-1 px-4">
           <div className="relative max-w-md">

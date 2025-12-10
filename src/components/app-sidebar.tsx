@@ -4,12 +4,11 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { BookOpenIcon, LayoutDashboardIcon, MessageCircleIcon, TargetIcon, CalendarIcon } from 'lucide-react'
+import { BookOpenIcon, LayoutDashboardIcon, MessageCircleIcon, TargetIcon, CalendarIcon, MessageSquare, MessagesSquare, Sparkle, Sparkles } from 'lucide-react'
 import { Button } from './ui/button'
 
 export function AppSidebar() {
@@ -28,12 +27,12 @@ export function AppSidebar() {
     {
       title: 'Forum',
       url: '/a/forum',
-      icon: <MessageCircleIcon size={20} className="text-[#2067E9]"/>,
+      icon: <MessagesSquare size={20} className="text-[#2067E9]"/>,
     },
     {
       title: 'ARME',
       url: '/a/arme',
-      icon: <TargetIcon size={20} className="text-[#2067E9]"/>,
+      icon: <Sparkles size={20} className="text-[#2067E9]"/>,
     },
   ]
   

@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
+import SidebarFilter from '@/components/sidebar-filter'
 
 export const Route = createFileRoute('/(app)/a')({
   component: ALayout,
@@ -14,7 +15,12 @@ function ALayout() {
       <SidebarInset>
         <TopNavigation />
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <Outlet />
+          <div className='flex items-start gap-3'>
+            <div className='flex-1 flex-grow'>
+              <Outlet />
+            </div>
+            <SidebarFilter />
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
