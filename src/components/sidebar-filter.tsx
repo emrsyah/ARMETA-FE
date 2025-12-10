@@ -48,8 +48,8 @@ function FilterSection({ icon: Icon, title, options }: {
 
 const SidebarFilter = () => {
   return (
-    <div className="flex flex-col max-w-xs w-full h-full border-l-2 px-4">
-      <div className="text-xl font-bold mt-4 px-4">Filter & Sorting</div>
+    <div className="sticky top-0 flex flex-col max-w-xs w-full h-fit  -mt-4 -mr-4 pt-4">
+      <div className="text-xl font-bold px-8">Filter & Sorting</div>
       
       <FilterSection icon={Funnel} title="Filter" options={FILTER_OPTIONS} />
       <FilterSection icon={ChartNoAxesColumnDecreasing} title="Sorting" options={SORTING_OPTIONS} />

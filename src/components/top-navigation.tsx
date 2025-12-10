@@ -8,13 +8,13 @@ export function TopNavigation() {
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       
       <div className="ml-auto flex items-center space-x-2 w-full justify-between">
-        <div className="flex-1 px-4">
-          <div className="relative max-w-md">
+        <div className="flex-1">
+          <div className="relative max-w-3xl w-full ">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Cari..."
-              className="w-full pl-8 md:w-[300px] lg:w-[400px]"
+              className="w-full pl-8"
             />
           </div>
         </div>
