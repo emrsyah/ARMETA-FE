@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { BookMarked, Flag, Heart, MessageCircle, Share } from 'lucide-react'
 
 export const Route = createFileRoute('/(app)/a/home')({
   component: HomePage,
@@ -8,136 +9,61 @@ function HomePage() {
   return (
    <div className="space-y-6 pb-60">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Beranda</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Selamat datang di dashboard ARMETA. Kelola mata kuliah, forum diskusi, dan fitur ARME Anda.
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">Selamat datang .."nama user"</h1>
+        
       </div>
 
       {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">📚</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Mata Kuliah
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">12</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">💬</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Postingan Forum
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">48</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">🎯</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Sesi ARME
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">8</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">📊</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Progress Belajar
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">75%</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Recent Activities */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
+          <div className=' flex mb-4'>
+            <img
+              className="h-12 w-12 rounded-full mr-2"
+              src="https://via.placeholder.com/150"
+              alt="User Avatar"
+            />
+            <p className="text-sm font-medium text-gray-900">"nama user"</p>
+            <Flag className="ml-auto h-5 w-5 text-black-400" />
+          </div>
           <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Aktivitas Terbaru
+            Desain Gak Cuma Soal UI — Tapi Gimana Bisa Dites!
           </h3>
           <div className="mt-5">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <span className="text-sm text-gray-500">📚</span>
-                </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-900">
-                    Menyelesaikan tugas "Algoritma dan Struktur Data"
+                    Banyak yang ngeremehin bagian desain di matkul ini, padahal justru di situ akar masalah bug sering muncul. 
+                    Kalau dari awal desainnya udah robust dengan sequence diagram dan use case yang jelas, proses implementasi dan pengujiannya bakal jauh lebih lancar. 
+                    Aku sendiri pernah ngalamin waktu ngembangin ide web course tracker, hasil akhirnya gak sesuai ekspektasi karena desain databasenya belum matang. 
+                    Dari situ aku belajar hal penting bahwa validasi ide itu gak cukup lewat mockup aja, tapi juga perlu dilihat dari alur pengujian dan integrasi datanya.
                   </p>
-                  <p className="text-xs text-gray-500">2 jam yang lalu</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <span className="text-sm text-gray-500">💬</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-gray-900">
-                    Membuat postingan baru di forum "Diskusi Matematika"
-                  </p>
-                  <p className="text-xs text-gray-500">4 jam yang lalu</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <span className="text-sm text-gray-500">🎯</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-gray-900">
-                    Menyelesaikan sesi ARME "Pengenalan Fisika"
-                  </p>
-                  <p className="text-xs text-gray-500">1 hari yang lalu</p>
-                </div>
-              </div>
+            </div>
+          </div>
+          <div className="flex mt-6 bg-blue-50 py-4 px-10 rounded-md justify-between">
+            <div className="flex items-center">
+              <MessageCircle className="h-5 w-5 text-black-400 mr-1" />
+              <span className="text-sm text-gray-600">200</span>
+            </div>
+
+            <div className="flex items-center">
+              <BookMarked className="h-5 w-5 text-black-400 mr-2" />
+              <span className="text-sm text-gray-600">7</span>
+            </div>
+            
+            <div className="flex items-center">
+              <Heart className="h-5 w-5 text-black-400 mr-2" />
+              <span className="text-sm text-gray-600">623</span>
+            </div>
+
+            <div className="flex items-center">
+              <Share className="h-5 w-5 text-black-400 mr-2" />
+              <span className="text-sm text-gray-600">Bagikan</span>
             </div>
           </div>
         </div>
