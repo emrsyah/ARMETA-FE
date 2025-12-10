@@ -1,5 +1,5 @@
 
-import { Funnel } from 'lucide-react';
+import { ChartNoAxesColumnDecreasing, Funnel } from 'lucide-react';
 import React from 'react'
 import { Button } from './ui/button';
 
@@ -35,8 +35,8 @@ const SidebarFilter = () => {
       </div>
       <div className='px-4 py-2'>
         <div className='mb-2'>
-          <Funnel className='inline-block mr-2 text-[#2067E9]' size={16} />
-          <span className='font-semibold text-md'>Filter</span>
+          <ChartNoAxesColumnDecreasing className='inline-block mr-2 text-[#2067E9]' size={16} />
+          <span className='font-semibold text-md'>Sorting</span>
         </div>
         <div className='mb-1'>
           <Button variant="outline" size="sm" className=" border-black border-[1px] rounded-2xl mr-2 mb-2 px-2.5 py-1 justify-start">
