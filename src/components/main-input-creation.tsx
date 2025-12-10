@@ -1,5 +1,4 @@
 import { SendHorizonal } from 'lucide-react'
-import { Input } from './ui/input'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from './ui/input-group'
 
 type Props = {

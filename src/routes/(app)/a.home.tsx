@@ -15,7 +15,17 @@ function HomePage() {
         <h1 className="text-3xl font-bold text-gray-900">Selamat datang .."nama user"</h1>
       </div>
 
-      <ReviewCard />
+      <ReviewCard 
+        userName="John Doe"
+        avatarFallback="JD"
+        title="Review Card"
+        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus esse animi obcaecati eveniet soluta. Delectus dolorum eum odit, magni porro mollitia eos? Eveniet reiciendis, nostrum nulla accusamus illo voluptates corrupti numquam tempora? Voluptatem earum laudantium nihil qui cupiditate repellendus beatae?"
+        // images={["https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150"]}
+        images={[]}
+        commentCount={200}
+        bookmarkCount={7}
+        likeCount={623}
+      />
 
       {/* Dashboard Cards */}
 

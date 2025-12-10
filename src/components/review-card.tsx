@@ -3,17 +3,39 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 
-const ReviewCard = () => {
+type Props = {
+    userName: string;
+    avatarUrl?: string;
+    avatarFallback: string;
+    title: string;
+    content: string;
+    images: string[];
+    commentCount: number;
+    bookmarkCount: number;
+    likeCount: number;
+}
+
+const ReviewCard = ({
+    userName,
+    avatarUrl,
+    avatarFallback,
+    title,
+    content,
+    images,
+    commentCount,
+    bookmarkCount,
+    likeCount
+}: Props) => {
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
                 <CardTitle className="flex items-center gap-3 cursor-pointer group">
                     <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" />
-                        <AvatarFallback>AR</AvatarFallback>
+                        <AvatarImage src={avatarUrl} />
+                        <AvatarFallback>{avatarFallback}</AvatarFallback>
                     </Avatar>
                     <span className="transition-all group-hover:underline">
-                        Review Card
+                        {userName}
                     </span>
                 </CardTitle>
                 <Button variant="ghost" size="icon">
@@ -22,65 +44,59 @@ const ReviewCard = () => {
             </CardHeader>
             <CardContent className="flex items-start gap-8">
                 <div>
-                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">Review Card</h3>
-                    <p className="text-sm mt-2 text-gray-500  leading-relaxed text-justify line-clamp-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus esse animi obcaecati eveniet soluta. Delectus dolorum eum odit, magni porro mollitia eos? Eveniet reiciendis, nostrum nulla accusamus illo voluptates corrupti numquam tempora? Voluptatem earum laudantium nihil qui cupiditate repellendus beatae?</p>
+                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title}</h3>
+                    <p className="text-sm mt-2 text-gray-500  leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
-                <div className="shrink-0 w-64 grid grid-cols-3 grid-rows-2 gap-1 rounded-lg overflow-hidden">
-                    <button 
-                        className="col-span-3 row-span-1 cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => console.log("Image 1 clicked")}
-                    >
-                        <img 
-                            src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop" 
-                            alt="Review image 1"
-                            className="w-full h-24 object-cover"
-                        />
-                    </button>
-                    <button 
-                        className="col-span-1 cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => console.log("Image 2 clicked")}
-                    >
-                        <img 
-                            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200&h=150&fit=crop" 
-                            alt="Review image 2"
-                            className="w-full h-16 object-cover"
-                        />
-                    </button>
-                    <button 
-                        className="col-span-1 cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => console.log("Image 3 clicked")}
-                    >
-                        <img 
-                            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=150&fit=crop" 
-                            alt="Review image 3"
-                            className="w-full h-16 object-cover"
-                        />
-                    </button>
-                    <button 
-                        className="col-span-1 cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => console.log("Image 4 clicked")}
-                    >
-                        <img 
-                            src="https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=200&h=150&fit=crop" 
-                            alt="Review image 4"
-                            className="w-full h-16 object-cover"
-                        />
-                    </button>
-                </div>
+                {images.length > 0 && (
+                    <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
+                        {images.length === 1 ? (
+                            <button
+                                className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => console.log("Image 1 clicked")}
+                            >
+                                <img
+                                    src={images[0]}
+                                    alt="Review image 1"
+                                    className="w-full h-32 object-cover rounded-lg"
+                                />
+                            </button>
+                        ) : (
+                            <div className={`grid gap-1 ${images.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
+                                {images.slice(0, 4).map((image, index) => (
+                                    <button
+                                        key={index}
+                                        className={`cursor-pointer hover:opacity-90 transition-opacity ${
+                                            index === 0 && images.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
+                                        }`}
+                                        onClick={() => console.log(`Image ${index + 1} clicked`)}
+                                    >
+                                        <img
+                                            src={image}
+                                            alt={`Review image ${index + 1}`}
+                                            className={`w-full object-cover rounded ${
+                                                index === 0 && images.length > 1 ? 'h-24' : 'h-16'
+                                            }`}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 <Button variant="ghost">
                     <MessageCircle />
-                    <span>200</span>
+                    <span>{commentCount}</span>
                 </Button>
                 <Button variant="ghost">
                     <Bookmark />
-                    <span>7</span>
+                    <span>{bookmarkCount}</span>
                 </Button>
                 <Button variant="ghost">
                     <Heart />
-                    <span>623</span>
+                    <span>{likeCount}</span>
                 </Button>
                 <Button variant="ghost">
                     <Share />
