@@ -16,7 +16,7 @@ function ALayout() {
         <TopNavigation />
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className='flex items-start gap-3'>
-            <div className='flex-1 flex-grow'>
+            <div className='flex-1 grow'>
               <Outlet />
             </div>
             <SidebarFilter />
