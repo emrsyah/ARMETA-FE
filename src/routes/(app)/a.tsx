@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useMatch } from '@tanstack/react-router'
+import { createFileRoute, Navigate, Outlet, useMatch } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/(app)/a')({
 
 function ALayout() {
   const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
+
 
   return (
     <SidebarProvider>

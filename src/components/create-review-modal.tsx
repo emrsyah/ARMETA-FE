@@ -6,12 +6,13 @@ import { Checkbox } from "./ui/checkbox"
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 import { Button } from "./ui/button"
 import { Combobox } from "./ui/combobox"
-import { CreateUlasanInput, createUlasanSchema } from "@/lib/schemas"
+import { createUlasanSchema } from "@/lib/schemas"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X } from "lucide-react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
+import z from "zod"
 
 // Dummy data
 const dosenList = [
@@ -35,11 +36,17 @@ type Props = {
   onOpenChange: (open: boolean) => void
 }
 
+const extendedCreateUlasanSchema = createUlasanSchema.extend({
+  type: z.enum(['dosen', 'matkul']).default('dosen'),
+})
+
+type ExtendedCreateUlasanInput = z.infer<typeof extendedCreateUlasanSchema>
+
 const CreateReviewModal = ({ open, onOpenChange }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
-  const form = useForm<CreateUlasanInput>({
-    resolver: standardSchemaResolver(createUlasanSchema),
+
+  const form = useForm<ExtendedCreateUlasanInput>({
+    resolver: standardSchemaResolver(extendedCreateUlasanSchema),
     defaultValues: {
       type: 'dosen',
       judulUlasan: '',
@@ -66,10 +73,17 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
     form.setValue('files', currentFiles.filter((_, i) => i !== index))
   }
 
-  const onSubmit = (data: CreateUlasanInput) => {
+  const [onSubmitLoading, setOnSubmitLoading] = useState(false)
+
+  const onSubmit = (data: ExtendedCreateUlasanInput) => {
     console.log(data)
     // TODO: Submit to API
-    onOpenChange(false)
+    setOnSubmitLoading(true)
+    // onOpenChange(false)
+    setTimeout(() => {
+      setOnSubmitLoading(false)
+      onOpenChange(false)
+    }, 1000)
   }
 
   return (
@@ -84,7 +98,7 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
             damping: 30,
           }}
         >
-        <DialogHeader>
+        <DialogHeader className="mb-4">
           <DialogTitle>Buat Ulasan</DialogTitle>
         </DialogHeader>
         
@@ -107,11 +121,11 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
                     className="w-full"
                   >
                     <TabsList className="w-full">
-                      <TabsTrigger value="dosen" className="flex-1">
-                        Ulasan Dosen
-                      </TabsTrigger>
                       <TabsTrigger value="matkul" className="flex-1">
                         Ulasan Mata Kuliah
+                      </TabsTrigger>
+                      <TabsTrigger value="dosen" className="flex-1">
+                        Ulasan Dosen
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
@@ -247,7 +261,7 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
 
               {/* Submit Buttons */}
               <div className="flex gap-2">
-                <Button size={'lg'} type="submit">
+                <Button size={'lg'} type="submit" loading={onSubmitLoading}>
                   Kirim
                 </Button>
               </div>

@@ -67,8 +67,10 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError as AxiosError)
-        // Redirect to login if refresh fails
-        window.location.href = '/auth/google/login'
+        // Redirect to login if refresh fails (only in browser)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/google/login'
+        }
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

@@ -20,7 +20,6 @@ export type Ulasan = z.infer<typeof ulasanSchema>
 
 // Create ulasan request
 export const createUlasanSchema = z.object({
-  type: z.enum(['dosen', 'matkul']),
   judulUlasan: z.string().min(1, 'Title is required'),
   textUlasan: z.string().min(1, 'Content is required'),
   isAnonymous: z.boolean().default(false),
