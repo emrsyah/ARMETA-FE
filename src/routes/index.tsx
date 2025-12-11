@@ -1,12 +1,30 @@
-// import { Button } from '@/components/ui/button'
 import { Button } from '@/components/ui/button'
 import { createFileRoute } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
+import { redirectToGoogleLogin } from '@/lib/queries/auth'
+import { AlertCircle } from 'lucide-react'
 import hero from '~/images/armeta-hero.webp'
 import googleIcon from '~/images/google.png'
-export const Route = createFileRoute('/')({ component: App })
+
+type LoginSearch = {
+  error?: string
+}
+
+export const Route = createFileRoute('/')({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    return {
+      error: search.error as string | undefined,
+    }
+  },
+  component: App,
+})
 
 function App() {
+  const { error } = Route.useSearch()
+
+  const handleGoogleLogin = () => {
+    redirectToGoogleLogin()
+  }
 
   return (
     <div className='max-w-7xl mx-auto px-4 lg:px-2 min-h-screen flex items-center justify-center'>
@@ -15,7 +33,24 @@ function App() {
         <div className='flex flex-col gap-3 items-center justify-center'>
           <h1 className='text-4xl lg:text-6xl text-center font-bold'>Selamat Datang di <span className='text-primary'>A</span>RMETA</h1>
           <p className='text-base lg:text-lg mt-3 font-medium text-center'>Silahkan login untuk melanjutkan.</p>
-          <Button className='mt-6' size={'lg'} variant={'outline'}>
+          
+          {error && (
+            <div className='mt-4 flex items-center gap-2 text-destructive bg-destructive/10 px-4 py-2 rounded-lg'>
+              <AlertCircle className='h-5 w-5' />
+              <span className='text-sm font-medium'>
+                {error === 'auth_failed' 
+                  ? 'Login gagal. Silahkan coba lagi.' 
+                  : 'Terjadi kesalahan. Silahkan coba lagi.'}
+              </span>
+            </div>
+          )}
+
+          <Button 
+            className='mt-6' 
+            size={'lg'} 
+            variant={'outline'}
+            onClick={handleGoogleLogin}
+          >
             <Image src={googleIcon} alt='google' width={20} height={20} />
             Lanjutkan dengan Google
           </Button>

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as appARouteImport } from './routes/(app)/a'
 import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
 import { Route as appAForumRouteImport } from './routes/(app)/a.forum'
@@ -18,6 +19,11 @@ import { Route as appAArmeRouteImport } from './routes/(app)/a.arme'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const appARoute = appARouteImport.update({
@@ -44,6 +50,7 @@ const appAArmeRoute = appAArmeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/a/arme': typeof appAArmeRoute
   '/a/forum': typeof appAForumRoute
   '/a/home': typeof appAHomeRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/a/arme': typeof appAArmeRoute
   '/a/forum': typeof appAForumRoute
   '/a/home': typeof appAHomeRoute
@@ -59,19 +67,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(app)/a': typeof appARouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/(app)/a/arme': typeof appAArmeRoute
   '/(app)/a/forum': typeof appAForumRoute
   '/(app)/a/home': typeof appAHomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/a' | '/a/arme' | '/a/forum' | '/a/home'
+  fullPaths: '/' | '/a' | '/auth/callback' | '/a/arme' | '/a/forum' | '/a/home'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/a' | '/a/arme' | '/a/forum' | '/a/home'
+  to: '/' | '/a' | '/auth/callback' | '/a/arme' | '/a/forum' | '/a/home'
   id:
     | '__root__'
     | '/'
     | '/(app)/a'
+    | '/auth/callback'
     | '/(app)/a/arme'
     | '/(app)/a/forum'
     | '/(app)/a/home'
@@ -80,6 +90,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   appARoute: typeof appARouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -89,6 +100,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(app)/a': {
@@ -139,6 +157,7 @@ const appARouteWithChildren = appARoute._addFileChildren(appARouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   appARoute: appARouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
