@@ -2,8 +2,11 @@ import { Bookmark, Flag, Heart, MessageCircle, Share } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
+import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from "@/lib/queries/ulasan"
+import { useState } from "react"
 
 type Props = {
+    id: string;
     userName: string;
     avatarUrl?: string;
     avatarFallback: string;
@@ -13,9 +16,13 @@ type Props = {
     commentCount: number;
     bookmarkCount: number;
     likeCount: number;
+    isLiked?: boolean;
+    isBookmarked?: boolean;
+    onReport?: () => void;
 }
 
 const ReviewCard = ({
+    id,
     userName,
     avatarUrl,
     avatarFallback,
@@ -24,8 +31,69 @@ const ReviewCard = ({
     images,
     commentCount,
     bookmarkCount,
-    likeCount
+    likeCount,
+    isLiked = false,
+    isBookmarked = false,
+    onReport,
 }: Props) => {
+    const [liked, setLiked] = useState(isLiked)
+    const [bookmarked, setBookmarked] = useState(isBookmarked)
+    const [currentLikeCount, setCurrentLikeCount] = useState(likeCount)
+    const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
+
+    const likeMutation = useLikeUlasan()
+    const unlikeMutation = useUnlikeUlasan()
+    const bookmarkMutation = useBookmarkUlasan()
+    const removeBookmarkMutation = useRemoveBookmark()
+
+    const handleLike = async () => {
+        if (liked) {
+            setLiked(false)
+            setCurrentLikeCount((prev) => prev - 1)
+            try {
+                await unlikeMutation.mutateAsync({ id_review: id })
+            } catch {
+                // Revert on error
+                setLiked(true)
+                setCurrentLikeCount((prev) => prev + 1)
+            }
+        } else {
+            setLiked(true)
+            setCurrentLikeCount((prev) => prev + 1)
+            try {
+                await likeMutation.mutateAsync({ id_review: id })
+            } catch {
+                // Revert on error
+                setLiked(false)
+                setCurrentLikeCount((prev) => prev - 1)
+            }
+        }
+    }
+
+    const handleBookmark = async () => {
+        if (bookmarked) {
+            setBookmarked(false)
+            setCurrentBookmarkCount((prev) => prev - 1)
+            try {
+                await removeBookmarkMutation.mutateAsync({ id_review: id })
+            } catch {
+                // Revert on error
+                setBookmarked(true)
+                setCurrentBookmarkCount((prev) => prev + 1)
+            }
+        } else {
+            setBookmarked(true)
+            setCurrentBookmarkCount((prev) => prev + 1)
+            try {
+                await bookmarkMutation.mutateAsync({ id_review: id })
+            } catch {
+                // Revert on error
+                setBookmarked(false)
+                setCurrentBookmarkCount((prev) => prev - 1)
+            }
+        }
+    }
+
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
@@ -38,14 +106,14 @@ const ReviewCard = ({
                         {userName}
                     </span>
                 </CardTitle>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={onReport}>
                     <Flag />
                 </Button>
             </CardHeader>
             <CardContent className="flex items-start gap-8">
                 <div>
                     <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title}</h3>
-                    <p className="text-sm mt-2 text-gray-500  leading-relaxed text-justify line-clamp-5">{content}</p>
+                    <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
                 {images.length > 0 && (
                     <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
@@ -83,20 +151,29 @@ const ReviewCard = ({
                         )}
                     </div>
                 )}
-
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 <Button variant="ghost">
                     <MessageCircle />
                     <span>{commentCount}</span>
                 </Button>
-                <Button variant="ghost">
-                    <Bookmark />
-                    <span>{bookmarkCount}</span>
+                <Button 
+                    variant="ghost" 
+                    onClick={handleBookmark}
+                    disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
+                    className={bookmarked ? 'text-primary' : ''}
+                >
+                    <Bookmark className={bookmarked ? 'fill-current' : ''} />
+                    <span>{currentBookmarkCount}</span>
                 </Button>
-                <Button variant="ghost">
-                    <Heart />
-                    <span>{likeCount}</span>
+                <Button 
+                    variant="ghost" 
+                    onClick={handleLike}
+                    disabled={likeMutation.isPending || unlikeMutation.isPending}
+                    className={liked ? 'text-red-500' : ''}
+                >
+                    <Heart className={liked ? 'fill-current' : ''} />
+                    <span>{currentLikeCount}</span>
                 </Button>
                 <Button variant="ghost">
                     <Share />

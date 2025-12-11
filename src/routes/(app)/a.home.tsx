@@ -1,40 +1,71 @@
 import MainInputCreation from '@/components/main-input-creation'
 import ReviewCard from '@/components/card/review-card'
 import { createFileRoute } from '@tanstack/react-router'
+import { useProfile } from '@/lib/queries/user'
+import { useUlasanList, ulasanListQueryOptions } from '@/lib/queries/ulasan'
+import { profileQueryOptions } from '@/lib/queries/user'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/(app)/a/home')({
+  loader: ({ context }) => {
+    // Prefetch data on route navigation
+    context.queryClient.ensureQueryData(ulasanListQueryOptions())
+    context.queryClient.ensureQueryData(profileQueryOptions())
+  },
   component: HomePage,
 })
 
 function HomePage() {
+  const { data: user, isLoading: isUserLoading } = useProfile()
+  const { data: ulasanList, isLoading: isUlasanLoading } = useUlasanList()
+
   return (
     <div className="space-y-6 pb-60">
-      <h1 className="text-3xl font-bold text-gray-900">Selamat datang .."nama user"</h1>
+      <h1 className="text-3xl font-bold text-gray-900">
+        Selamat datang{' '}
+        {isUserLoading ? (
+          <Skeleton className="inline-block h-8 w-40" />
+        ) : (
+          user?.name || 'User'
+        )}
+      </h1>
+      
       <MainInputCreation />
 
-      <ReviewCard
-        userName="John Doe"
-        avatarFallback="JD"
-        title="Review Card"
-        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus esse animi obcaecati eveniet soluta. Delectus dolorum eum odit, magni porro mollitia eos? Eveniet reiciendis, nostrum nulla accusamus illo voluptates corrupti numquam tempora? Voluptatem earum laudantium nihil qui cupiditate repellendus beatae?"
-        // images={["https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150"]}
-        images={[]}
-        commentCount={200}
-        bookmarkCount={7}
-        likeCount={623}
-      />
-      <ReviewCard
-        userName="John Doe"
-        avatarFallback="JD"
-        title="Review Card"
-        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus esse animi obcaecati eveniet soluta. Delectus dolorum eum odit, magni porro mollitia eos? Eveniet reiciendis, nostrum nulla accusamus illo voluptates corrupti numquam tempora? Voluptatem earum laudantium nihil qui cupiditate repellendus beatae?"
-        images={["https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150"]}
-        // images={[]}
-        commentCount={200}
-        bookmarkCount={7}
-        likeCount={623}
-      />
-
+      {isUlasanLoading ? (
+        // Loading skeleton for reviews
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-lg border p-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ))}
+        </div>
+      ) : ulasanList && ulasanList.length > 0 ? (
+        ulasanList.map((ulasan) => (
+          <ReviewCard
+            key={ulasan.id_review}
+            id={ulasan.id_review}
+            userName="User" // TODO: Fetch user data for each review
+            avatarFallback="U"
+            title={ulasan.title}
+            content={ulasan.body}
+            images={ulasan.files}
+            commentCount={0}
+            bookmarkCount={0}
+            likeCount={0}
+          />
+        ))
+      ) : (
+        <div className="text-center py-12 text-gray-500">
+          <p>Belum ada ulasan. Jadilah yang pertama menulis ulasan!</p>
+        </div>
+      )}
     </div>
   )
 }
