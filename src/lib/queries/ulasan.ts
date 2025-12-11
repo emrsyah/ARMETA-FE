@@ -52,6 +52,18 @@ export const bookmarkedUlasanQueryOptions = () =>
     },
   })
 
+export const ulasanDetailQueryOptions = (ulasanId: string) =>
+  queryOptions({
+    queryKey: ulasanKeys.detail(ulasanId),
+    queryFn: async () => {
+      const response = await api.get<UlasanResponse>(ULASAN_ENDPOINTS.GET_BY_ID, {
+        params: { id_review: ulasanId },
+      })
+      return response.data.data
+    },
+    enabled: !!ulasanId,
+  })
+
 // Query: Get all ulasan
 export function useUlasanList() {
   return useQuery(ulasanListQueryOptions())
@@ -65,6 +77,11 @@ export function useLikedUlasan() {
 // Query: Get bookmarked ulasan
 export function useBookmarkedUlasan() {
   return useQuery(bookmarkedUlasanQueryOptions())
+}
+
+// Query: Get single ulasan by ID
+export function useUlasanDetail(ulasanId: string) {
+  return useQuery(ulasanDetailQueryOptions(ulasanId))
 }
 
 // Mutation: Create ulasan

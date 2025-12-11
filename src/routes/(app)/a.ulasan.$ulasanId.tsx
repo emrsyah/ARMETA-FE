@@ -1,0 +1,404 @@
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useUlasanDetail, useUlasanList, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from '@/lib/queries/ulasan'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { motion, LayoutGroup } from 'motion/react'
+import {
+  ArrowLeft,
+  Bookmark,
+  Flag,
+  Heart,
+  MessageCircle,
+  Share,
+  Send,
+  ImageIcon,
+  Calendar,
+} from 'lucide-react'
+import { useState } from 'react'
+import CreateReviewModal from '@/components/create-review-modal'
+import ReviewCard from '@/components/card/review-card'
+
+export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
+  component: UlasanDetailPage,
+})
+
+function UlasanDetailPage() {
+  const { ulasanId } = Route.useParams()
+  const { data: ulasan, isLoading: isUlasanLoading } = useUlasanDetail(ulasanId)
+  const { data: ulasanList, isLoading: isRepliesLoading } = useUlasanList()
+
+  const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
+  const [bookmarkCount, setBookmarkCount] = useState(0)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+
+  const likeMutation = useLikeUlasan()
+  const unlikeMutation = useUnlikeUlasan()
+  const bookmarkMutation = useBookmarkUlasan()
+  const removeBookmarkMutation = useRemoveBookmark()
+
+  // Filter replies to this ulasan
+  const replies = ulasanList?.filter(
+    (item) => item.id_reply === ulasanId
+  )
+
+  const handleLike = async () => {
+    if (liked) {
+      setLiked(false)
+      setLikeCount((prev) => prev - 1)
+      try {
+        await unlikeMutation.mutateAsync({ id_review: ulasanId })
+      } catch {
+        setLiked(true)
+        setLikeCount((prev) => prev + 1)
+      }
+    } else {
+      setLiked(true)
+      setLikeCount((prev) => prev + 1)
+      try {
+        await likeMutation.mutateAsync({ id_review: ulasanId })
+      } catch {
+        setLiked(false)
+        setLikeCount((prev) => prev - 1)
+      }
+    }
+  }
+
+  const handleBookmark = async () => {
+    if (bookmarked) {
+      setBookmarked(false)
+      setBookmarkCount((prev) => prev - 1)
+      try {
+        await removeBookmarkMutation.mutateAsync({ id_review: ulasanId })
+      } catch {
+        setBookmarked(true)
+        setBookmarkCount((prev) => prev + 1)
+      }
+    } else {
+      setBookmarked(true)
+      setBookmarkCount((prev) => prev + 1)
+      try {
+        await bookmarkMutation.mutateAsync({ id_review: ulasanId })
+      } catch {
+        setBookmarked(false)
+        setBookmarkCount((prev) => prev - 1)
+      }
+    }
+  }
+
+  if (isUlasanLoading) {
+    return <UlasanDetailSkeleton />
+  }
+
+  return (
+    <LayoutGroup>
+
+      {/* Image Lightbox */}
+      {selectedImageIndex !== null && ulasan?.files && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImageIndex(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300"
+            onClick={() => setSelectedImageIndex(null)}
+          >
+            ✕
+          </button>
+          <img
+            src={ulasan.files[selectedImageIndex]}
+            alt={`Image ${selectedImageIndex + 1}`}
+            className="max-w-full max-h-full object-contain"
+          />
+          {/* Navigation buttons */}
+          {ulasan.files.length > 1 && (
+            <>
+              <button
+                className="absolute left-4 text-white hover:text-gray-300 text-2xl p-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedImageIndex(
+                    (selectedImageIndex - 1 + ulasan.files.length) %
+                      ulasan.files.length
+                  )
+                }}
+              >
+                ←
+              </button>
+              <button
+                className="absolute right-4 text-white hover:text-gray-300 text-2xl p-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedImageIndex(
+                    (selectedImageIndex + 1) % ulasan.files.length
+                  )
+                }}
+              >
+                →
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="space-y-6 pb-60">
+        {/* Back button */}
+        <Link
+          to="/a/home"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Kembali ke Beranda
+        </Link>
+
+        {/* Ulasan Detail Card */}
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
+                    U
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">Pengguna</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span>
+                      {ulasan?.created_at
+                        ? new Date(ulasan.created_at).toLocaleDateString(
+                            'id-ID',
+                            {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }
+                          )
+                        : 'Tanggal tidak tersedia'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon">
+                <Flag className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-6 space-y-6">
+            {/* Title */}
+            <h1 className="text-2xl font-bold text-gray-900">
+              {ulasan?.title || 'Judul Ulasan'}
+            </h1>
+
+            {/* Content */}
+            <div className="prose prose-gray max-w-none">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {ulasan?.body || 'Tidak ada konten.'}
+              </p>
+            </div>
+
+            {/* Images */}
+            {ulasan?.files && ulasan.files.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ImageIcon className="h-4 w-4" />
+                  <span>{ulasan.files.length} Gambar</span>
+                </div>
+                <div
+                  className={`grid gap-2 ${
+                    ulasan.files.length === 1
+                      ? 'grid-cols-1'
+                      : ulasan.files.length === 2
+                        ? 'grid-cols-2'
+                        : 'grid-cols-3'
+                  }`}
+                >
+                  {ulasan.files.map((file, index) => (
+                    <button
+                      key={index}
+                      className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer"
+                      onClick={() => setSelectedImageIndex(index)}
+                    >
+                      <img
+                        src={file}
+                        alt={`Image ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+
+          <CardFooter className="border-t bg-gray-50/50 py-3">
+            <div className="flex items-center gap-2 w-full">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <MessageCircle className="h-4 w-4" />
+                <span>{replies?.length || 0} Balasan</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`gap-2 ${bookmarked ? 'text-primary' : ''}`}
+                onClick={handleBookmark}
+                disabled={
+                  bookmarkMutation.isPending || removeBookmarkMutation.isPending
+                }
+              >
+                <Bookmark
+                  className={`h-4 w-4 ${bookmarked ? 'fill-current' : ''}`}
+                />
+                <span>{bookmarkCount}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`gap-2 ${liked ? 'text-red-500' : ''}`}
+                onClick={handleLike}
+                disabled={likeMutation.isPending || unlikeMutation.isPending}
+              >
+                <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                <span>{likeCount}</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-2 ml-auto">
+                <Share className="h-4 w-4" />
+                <span>Bagikan</span>
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+
+        {/* Reply Input */}
+        {!openCreateReviewModal && (
+          <motion.div
+            layoutId="create-ulasan-reply-input"
+            onClick={() => setOpenCreateReviewModal(true)}
+            className="cursor-pointer"
+            transition={{
+              type: 'spring',
+              stiffness: 350,
+              damping: 30,
+            }}
+          >
+            <Card className="overflow-hidden hover:border-primary/50 transition-colors">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <Input
+                    readOnly
+                    placeholder="Tulis balasan untuk ulasan ini..."
+                    className="cursor-pointer flex-1 bg-gray-50"
+                  />
+                  <Button size="icon" variant="ghost">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Replies Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              Balasan ({replies?.length || 0})
+            </h2>
+          </div>
+
+          {isRepliesLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : replies && replies.length > 0 ? (
+            replies.map((reply) => (
+              <ReviewCard
+                key={reply.id_review}
+                id={reply.id_review}
+                userName="User"
+                avatarFallback="U"
+                title={reply.title}
+                content={reply.body}
+                images={reply.files}
+                commentCount={0}
+                bookmarkCount={0}
+                likeCount={0}
+              />
+            ))
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">
+                  Belum ada balasan untuk ulasan ini.
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Jadilah yang pertama memberikan tanggapan!
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </LayoutGroup>
+  )
+}
+
+function UlasanDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-5 w-32" />
+      <Card>
+        <CardHeader className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-48 w-full rounded-lg" />
+        </CardContent>
+        <CardFooter>
+          <div className="flex gap-4">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+}

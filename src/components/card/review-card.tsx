@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card
 import { Button } from "../ui/button"
 import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from "@/lib/queries/ulasan"
 import { useState } from "react"
+import { Link } from "@tanstack/react-router"
 
 type Props = {
     id: string;
@@ -112,7 +113,9 @@ const ReviewCard = ({
             </CardHeader>
             <CardContent className="flex items-start gap-8">
                 <div>
-                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title}</h3>
+                    <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
+                        <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title}</h3>
+                    </Link>
                     <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
                 {images.length > 0 && (
@@ -133,17 +136,15 @@ const ReviewCard = ({
                                 {images.slice(0, 4).map((image, index) => (
                                     <button
                                         key={index}
-                                        className={`cursor-pointer hover:opacity-90 transition-opacity ${
-                                            index === 0 && images.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
-                                        }`}
+                                        className={`cursor-pointer hover:opacity-90 transition-opacity ${index === 0 && images.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
+                                            }`}
                                         onClick={() => console.log(`Image ${index + 1} clicked`)}
                                     >
                                         <img
                                             src={image}
                                             alt={`Review image ${index + 1}`}
-                                            className={`w-full object-cover rounded ${
-                                                index === 0 && images.length > 1 ? 'h-24' : 'h-16'
-                                            }`}
+                                            className={`w-full object-cover rounded ${index === 0 && images.length > 1 ? 'h-24' : 'h-16'
+                                                }`}
                                         />
                                     </button>
                                 ))}
@@ -157,8 +158,8 @@ const ReviewCard = ({
                     <MessageCircle />
                     <span>{commentCount}</span>
                 </Button>
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     onClick={handleBookmark}
                     disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
                     className={bookmarked ? 'text-primary' : ''}
@@ -166,8 +167,8 @@ const ReviewCard = ({
                     <Bookmark className={bookmarked ? 'fill-current' : ''} />
                     <span>{currentBookmarkCount}</span>
                 </Button>
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     onClick={handleLike}
                     disabled={likeMutation.isPending || unlikeMutation.isPending}
                     className={liked ? 'text-red-500' : ''}

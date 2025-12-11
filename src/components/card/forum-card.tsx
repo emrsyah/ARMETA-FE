@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Separator } from "../ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Link } from "@tanstack/react-router"
 
 export type ForumReply = {
     authorName: string
@@ -50,9 +51,9 @@ const ForumCard = ({
                 </Button>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-                <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">
-                    {title}
-                </h3>
+                <Link to="/a/forum/$forumId" params={{ forumId: "218e12e89ybhacjh" }}>
+                    <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">{title}</h3>
+                </Link>
                 <div className="flex gap-3">
                     <Separator orientation="vertical" className="h-2 w-2 bg-gray-200" />
                     <div className="flex flex-col gap-2 text-sm text-muted-foreground">

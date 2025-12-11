@@ -16,6 +16,7 @@ export const ULASAN_ENDPOINTS = {
   CREATE: '/api/ulasan/createUlasan',
   EDIT: '/api/ulasan/editUlasan',
   GET_ALL: '/api/ulasan/getUlasan',
+  GET_BY_ID: '/api/ulasan/getUlasan', // With id_review param
   SEARCH: '/api/ulasan/search',
   LIKE: '/api/ulasan/likeUlasan',
   GET_LIKED: '/api/ulasan/likeUlasan',
@@ -25,7 +26,9 @@ export const ULASAN_ENDPOINTS = {
 
 export const FORUM_ENDPOINTS = {
   CREATE: '/api/forum/createForum',
+  GET_ALL: '/api/forum/getForums', // Can be used without id_subject for all forums
   GET_BY_SUBJECT: '/api/forum/getForums',
+  GET_BY_ID: '/api/forum/getForum', // Single forum with id_forum param
 } as const
 
 export const REPORT_ENDPOINTS = {

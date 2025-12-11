@@ -15,6 +15,8 @@ import { Route as appARouteImport } from './routes/(app)/a'
 import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
 import { Route as appAForumRouteImport } from './routes/(app)/a.forum'
 import { Route as appAArmeRouteImport } from './routes/(app)/a.arme'
+import { Route as appAUlasanUlasanIdRouteImport } from './routes/(app)/a.ulasan.$ulasanId'
+import { Route as appAForumForumIdRouteImport } from './routes/(app)/a.forum.$forumId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,22 +48,36 @@ const appAArmeRoute = appAArmeRouteImport.update({
   path: '/arme',
   getParentRoute: () => appARoute,
 } as any)
+const appAUlasanUlasanIdRoute = appAUlasanUlasanIdRouteImport.update({
+  id: '/ulasan/$ulasanId',
+  path: '/ulasan/$ulasanId',
+  getParentRoute: () => appARoute,
+} as any)
+const appAForumForumIdRoute = appAForumForumIdRouteImport.update({
+  id: '/$forumId',
+  path: '/$forumId',
+  getParentRoute: () => appAForumRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/a/arme': typeof appAArmeRoute
-  '/a/forum': typeof appAForumRoute
+  '/a/forum': typeof appAForumRouteWithChildren
   '/a/home': typeof appAHomeRoute
+  '/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/a/arme': typeof appAArmeRoute
-  '/a/forum': typeof appAForumRoute
+  '/a/forum': typeof appAForumRouteWithChildren
   '/a/home': typeof appAHomeRoute
+  '/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,14 +85,32 @@ export interface FileRoutesById {
   '/(app)/a': typeof appARouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/(app)/a/arme': typeof appAArmeRoute
-  '/(app)/a/forum': typeof appAForumRoute
+  '/(app)/a/forum': typeof appAForumRouteWithChildren
   '/(app)/a/home': typeof appAHomeRoute
+  '/(app)/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/(app)/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/a' | '/auth/callback' | '/a/arme' | '/a/forum' | '/a/home'
+  fullPaths:
+    | '/'
+    | '/a'
+    | '/auth/callback'
+    | '/a/arme'
+    | '/a/forum'
+    | '/a/home'
+    | '/a/forum/$forumId'
+    | '/a/ulasan/$ulasanId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/a' | '/auth/callback' | '/a/arme' | '/a/forum' | '/a/home'
+  to:
+    | '/'
+    | '/a'
+    | '/auth/callback'
+    | '/a/arme'
+    | '/a/forum'
+    | '/a/home'
+    | '/a/forum/$forumId'
+    | '/a/ulasan/$ulasanId'
   id:
     | '__root__'
     | '/'
@@ -85,6 +119,8 @@ export interface FileRouteTypes {
     | '/(app)/a/arme'
     | '/(app)/a/forum'
     | '/(app)/a/home'
+    | '/(app)/a/forum/$forumId'
+    | '/(app)/a/ulasan/$ulasanId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,19 +173,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAArmeRouteImport
       parentRoute: typeof appARoute
     }
+    '/(app)/a/ulasan/$ulasanId': {
+      id: '/(app)/a/ulasan/$ulasanId'
+      path: '/ulasan/$ulasanId'
+      fullPath: '/a/ulasan/$ulasanId'
+      preLoaderRoute: typeof appAUlasanUlasanIdRouteImport
+      parentRoute: typeof appARoute
+    }
+    '/(app)/a/forum/$forumId': {
+      id: '/(app)/a/forum/$forumId'
+      path: '/$forumId'
+      fullPath: '/a/forum/$forumId'
+      preLoaderRoute: typeof appAForumForumIdRouteImport
+      parentRoute: typeof appAForumRoute
+    }
   }
 }
 
+interface appAForumRouteChildren {
+  appAForumForumIdRoute: typeof appAForumForumIdRoute
+}
+
+const appAForumRouteChildren: appAForumRouteChildren = {
+  appAForumForumIdRoute: appAForumForumIdRoute,
+}
+
+const appAForumRouteWithChildren = appAForumRoute._addFileChildren(
+  appAForumRouteChildren,
+)
+
 interface appARouteChildren {
   appAArmeRoute: typeof appAArmeRoute
-  appAForumRoute: typeof appAForumRoute
+  appAForumRoute: typeof appAForumRouteWithChildren
   appAHomeRoute: typeof appAHomeRoute
+  appAUlasanUlasanIdRoute: typeof appAUlasanUlasanIdRoute
 }
 
 const appARouteChildren: appARouteChildren = {
   appAArmeRoute: appAArmeRoute,
-  appAForumRoute: appAForumRoute,
+  appAForumRoute: appAForumRouteWithChildren,
   appAHomeRoute: appAHomeRoute,
+  appAUlasanUlasanIdRoute: appAUlasanUlasanIdRoute,
 }
 
 const appARouteWithChildren = appARoute._addFileChildren(appARouteChildren)
