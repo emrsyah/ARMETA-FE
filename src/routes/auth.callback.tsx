@@ -22,7 +22,7 @@ export const Route = createFileRoute('/auth/callback')({
 
 function AuthCallback() {
   const navigate = useNavigate()
-  const { error } = Route.useSearch()
+  const { accessToken, refreshToken, error } = Route.useSearch()
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -33,11 +33,17 @@ function AuthCallback() {
         return
       }
 
-      // With HTTP-only cookies, the backend sets the cookies during redirect
-      // We just need to redirect to the authenticated area
-      // The cookies are automatically included in subsequent requests
+      // Store refresh token in localStorage for token refresh
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken)
+      }
 
-      // Small delay to ensure cookies are set
+      // Store access token if needed (optional, depends on your auth flow)
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken)
+      }
+
+      // Small delay to ensure everything is set
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       // Redirect to home/dashboard
@@ -45,7 +51,7 @@ function AuthCallback() {
     }
 
     handleCallback()
-  }, [error, navigate])
+  }, [accessToken, refreshToken, error, navigate])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">

@@ -1,9 +1,7 @@
-import MainInputCreation from '@/components/main-input-creation'
 import ReviewCard from '@/components/card/review-card'
 import { createFileRoute } from '@tanstack/react-router'
 import { useProfile } from '@/lib/queries/user'
-import { useUlasanList, ulasanListQueryOptions } from '@/lib/queries/ulasan'
-import { profileQueryOptions } from '@/lib/queries/user'
+import { useUlasanList } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 import CreateReviewModal from '@/components/create-review-modal'
@@ -11,11 +9,7 @@ import { Input } from '@/components/ui/input'
 import { motion, LayoutGroup } from 'motion/react'
 
 export const Route = createFileRoute('/(app)/a/home')({
-  loader: ({ context }) => {
-    // Prefetch data on route navigation
-    context.queryClient.ensureQueryData(ulasanListQueryOptions())
-    context.queryClient.ensureQueryData(profileQueryOptions())
-  },
+  // Note: No SSR prefetching for authenticated queries (cookies not available in SSR)
   component: HomePage,
 })
 
