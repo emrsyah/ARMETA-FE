@@ -5,6 +5,10 @@ import { useProfile } from '@/lib/queries/user'
 import { useUlasanList, ulasanListQueryOptions } from '@/lib/queries/ulasan'
 import { profileQueryOptions } from '@/lib/queries/user'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useState } from 'react'
+import CreateReviewModal from '@/components/create-review-modal'
+import { Input } from '@/components/ui/input'
+import { motion, LayoutGroup } from 'motion/react'
 
 export const Route = createFileRoute('/(app)/a/home')({
   loader: ({ context }) => {
@@ -19,7 +23,11 @@ function HomePage() {
   const { data: user, isLoading: isUserLoading } = useProfile()
   const { data: ulasanList, isLoading: isUlasanLoading } = useUlasanList()
 
+  const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
+
   return (
+    <LayoutGroup>
+    <CreateReviewModal open={openCreateReviewModal} onOpenChange={setOpenCreateReviewModal} />
     <div className="space-y-6 pb-60">
       <h1 className="text-3xl font-bold text-gray-900">
         Selamat datang{' '}
@@ -28,9 +36,28 @@ function HomePage() {
         ) : (
           user?.name || 'User'
         )}
-      </h1>
+      </h1> 
+
+      {!openCreateReviewModal && (
+        <motion.div
+          layoutId="create-review-input"
+          onClick={() => setOpenCreateReviewModal(true)}
+          className="cursor-pointer"
+          transition={{
+            type: "spring",
+            stiffness: 350,
+            damping: 30,
+          }}
+        >
+          <Input 
+            readOnly
+            placeholder="Tulis ulasan..." 
+            className="cursor-pointer"
+          />
+        </motion.div>
+      )}
       
-      <MainInputCreation />
+      {/* <MainInputCreation /> */}
 
       {isUlasanLoading ? (
         // Loading skeleton for reviews
@@ -67,5 +94,6 @@ function HomePage() {
         </div>
       )}
     </div>
+    </LayoutGroup>
   )
 }
