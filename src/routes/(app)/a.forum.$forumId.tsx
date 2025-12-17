@@ -101,10 +101,10 @@ function ForumDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     {forum?.created_at
                       ? new Date(forum.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
                       : 'Tanggal tidak tersedia'}
                   </p>
                 </div>
@@ -198,10 +198,12 @@ function ForumDetailPage() {
                 avatarFallback="U"
                 title={reply.title}
                 content={reply.body}
-                images={reply.files}
+                files={reply.files}
                 commentCount={0}
-                bookmarkCount={0}
-                likeCount={0}
+                bookmarkCount={reply.total_bookmarks ?? 0}
+                likeCount={reply.total_likes ?? 0}
+                isLiked={!!reply.is_liked}
+                isBookmarked={!!reply.is_bookmarked}
               />
             ))
           ) : (

@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Input } from "./ui/input"
 import { Textarea } from "./ui/textarea"
-import { Checkbox } from "./ui/checkbox"
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 import { Button } from "./ui/button"
 import { Combobox } from "./ui/combobox"
@@ -11,25 +10,10 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X } from "lucide-react"
-import { useRef, useState } from "react"
+import { useMemo, useRef } from "react"
 import z from "zod"
-
-// Dummy data
-const dosenList = [
-  { value: "dosen-1", label: "Dr. Ahmad Sudrajat, M.Kom" },
-  { value: "dosen-2", label: "Prof. Budi Santoso, Ph.D" },
-  { value: "dosen-3", label: "Ir. Citra Dewi, M.T" },
-  { value: "dosen-4", label: "Dr. Dedi Kurniawan, S.Si" },
-  { value: "dosen-5", label: "Eka Putri, M.Sc" },
-]
-
-const matkulList = [
-  { value: "matkul-1", label: "Algoritma dan Pemrograman" },
-  { value: "matkul-2", label: "Struktur Data" },
-  { value: "matkul-3", label: "Basis Data" },
-  { value: "matkul-4", label: "Pemrograman Web" },
-  { value: "matkul-5", label: "Kecerdasan Buatan" },
-]
+import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
+import { useCreateUlasan } from "@/lib/queries/ulasan"
 
 type Props = {
   open: boolean
@@ -37,13 +21,29 @@ type Props = {
 }
 
 const extendedCreateUlasanSchema = createUlasanSchema.extend({
-  type: z.enum(['dosen', 'matkul']).default('dosen'),
+  type: z.enum(['dosen', 'matkul']),
 })
 
 type ExtendedCreateUlasanInput = z.infer<typeof extendedCreateUlasanSchema>
 
 const CreateReviewModal = ({ open, onOpenChange }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const { data: lecturers = [] } = useLecturers()
+  const { data: subjects = [] } = useSubjects()
+  const createUlasanMutation = useCreateUlasan()
+
+  const dosenList = useMemo(() => 
+    lecturers.map((lecturer) => ({
+      value: lecturer.id_lecturer,
+      label: lecturer.name,
+    })), [lecturers])
+
+  const matkulList = useMemo(() => 
+    subjects.map((subject) => ({
+      value: subject.id_subject,
+      label: subject.name,
+    })), [subjects])
 
   const form = useForm<ExtendedCreateUlasanInput>({
     resolver: standardSchemaResolver(extendedCreateUlasanSchema),
@@ -51,7 +51,6 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
       type: 'dosen',
       judulUlasan: '',
       textUlasan: '',
-      isAnonymous: false,
       files: [],
     },
   })
@@ -73,17 +72,20 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
     form.setValue('files', currentFiles.filter((_, i) => i !== index))
   }
 
-  const [onSubmitLoading, setOnSubmitLoading] = useState(false)
-
-  const onSubmit = (data: ExtendedCreateUlasanInput) => {
-    console.log(data)
-    // TODO: Submit to API
-    setOnSubmitLoading(true)
-    // onOpenChange(false)
-    setTimeout(() => {
-      setOnSubmitLoading(false)
+  const onSubmit = async (data: ExtendedCreateUlasanInput) => {
+    try {
+      await createUlasanMutation.mutateAsync({
+        judulUlasan: data.judulUlasan,
+        textUlasan: data.textUlasan,
+        idDosen: data.type === 'dosen' ? data.idDosen : undefined,
+        idMatkul: data.type === 'matkul' ? data.idMatkul : undefined,
+        files: data.files,
+      })
+      form.reset()
       onOpenChange(false)
-    }, 1000)
+    } catch (error) {
+      console.error('Failed to create ulasan:', error)
+    }
   }
 
   return (
@@ -238,30 +240,11 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
                 >
                   <Paperclip className="size-5" />
                 </button>
-
-                {/* Anonymous Checkbox */}
-                <FormField
-                  name="isAnonymous"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal cursor-pointer">
-                        Anonim
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
               </div>
 
               {/* Submit Buttons */}
               <div className="flex gap-2">
-                <Button size={'lg'} type="submit" loading={onSubmitLoading}>
+                <Button size={'lg'} type="submit" loading={createUlasanMutation.isPending}>
                   Kirim
                 </Button>
               </div>

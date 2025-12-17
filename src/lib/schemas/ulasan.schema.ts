@@ -10,10 +10,21 @@ export const ulasanSchema = z.object({
   id_forum: z.string().uuid().nullable().optional(),
   title: z.string(),
   body: z.string(),
+  total_likes: z.number().default(0),
+  total_bookmarks: z.number().default(0),
+  is_liked: z.boolean().default(false),
+  is_bookmarked: z.boolean().default(false),
+  reply: z.array(z.string()).default([]),
   files: z.array(z.string()).default([]),
   vectorize: z.string().optional(),
   created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullable(),
+  user: z.object({
+    id_user: z.string().uuid(),
+    name: z.string(),
+    email: z.string().email().optional(),
+    image: z.string().nullable(),
+  }).optional(),
 })
 
 export type Ulasan = z.infer<typeof ulasanSchema>
@@ -22,7 +33,6 @@ export type Ulasan = z.infer<typeof ulasanSchema>
 export const createUlasanSchema = z.object({
   judulUlasan: z.string().min(1, 'Title is required'),
   textUlasan: z.string().min(1, 'Content is required'),
-  isAnonymous: z.boolean().default(false),
   idMatkul: z.string().uuid().optional(),
   idDosen: z.string().uuid().optional(),
   idReply: z.string().uuid().optional(),
@@ -42,13 +52,39 @@ export const editUlasanSchema = z.object({
 
 export type EditUlasanInput = z.infer<typeof editUlasanSchema>
 
-// Search ulasan request
-export const searchUlasanSchema = z.object({
+// Vector search ulasan request
+export const searchVectorUlasanSchema = z.object({
   query: z.string().min(1, 'Search query is required'),
   limit: z.number().min(1).max(50).default(5),
 })
 
-export type SearchUlasanInput = z.infer<typeof searchUlasanSchema>
+export type SearchVectorUlasanInput = z.infer<typeof searchVectorUlasanSchema>
+
+// Text search ulasan request
+export const searchTextUlasanSchema = z.object({
+  q: z.string().min(1, 'Search keyword is required'),
+})
+
+export type SearchTextUlasanInput = z.infer<typeof searchTextUlasanSchema>
+
+// Filter ulasan by date request
+export const filterUlasanSchema = z.object({
+  from: z.string(), // ISO date format
+  to: z.string(), // ISO date format
+})
+
+export type FilterUlasanInput = z.infer<typeof filterUlasanSchema>
+
+// Sort ulasan request
+export const sortByEnum = z.enum(['date', 'most_like', 'most_bookmark', 'most_popular'])
+export const sortOrderEnum = z.enum(['asc', 'desc'])
+
+export const sortUlasanSchema = z.object({
+  sortBy: sortByEnum.default('date'),
+  order: sortOrderEnum.default('desc'),
+})
+
+export type SortUlasanInput = z.infer<typeof sortUlasanSchema>
 
 // Like/Bookmark request
 export const ulasanIdSchema = z.object({
@@ -90,6 +126,28 @@ export const bookmarkSchema = z.object({
 
 export type Bookmark = z.infer<typeof bookmarkSchema>
 
+// Extended ulasan schema for list responses (includes joined data)
+export const ulasanListItemSchema = ulasanSchema.extend({
+  lecturer_name: z.string().optional(),
+  subject_name: z.string().optional(),
+  semester: z.number().optional(),
+  total_likes: z.number().default(0),
+  total_bookmarks: z.number().default(0),
+})
+
+export type UlasanListItem = z.infer<typeof ulasanListItemSchema>
+
+// Pagination schema
+export const paginationSchema = z.object({
+  currentPage: z.number(),
+  limit: z.number(),
+  totalData: z.number(),
+  totalPage: z.number(),
+  hasNextPage: z.boolean(),
+})
+
+export type Pagination = z.infer<typeof paginationSchema>
+
 // API Response types
 export const ulasanResponseSchema = z.object({
   status: z.boolean(),
@@ -100,7 +158,8 @@ export const ulasanResponseSchema = z.object({
 export const ulasanListResponseSchema = z.object({
   status: z.boolean(),
   message: z.string(),
-  data: z.array(ulasanSchema),
+  pagination: paginationSchema.optional(),
+  data: z.array(ulasanListItemSchema),
 })
 
 export const searchResponseSchema = z.object({

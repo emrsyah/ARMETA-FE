@@ -2,15 +2,32 @@
 import { useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { User, Search } from 'lucide-react'
-import { useProfile } from '@/lib/queries'
+import { Search, LogOut } from 'lucide-react'
+import { useProfile, useLogout } from '@/lib/queries'
+import { useNavigate } from '@tanstack/react-router'
 import { Skeleton } from './ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 export function TopNavigation() {
   const id = useId()
+  const navigate = useNavigate()
 
   const { data: user, isLoading } = useProfile()
+  const logout = useLogout()
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        navigate({ to: '/' })
+      },
+    })
+  }
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -31,17 +48,27 @@ export function TopNavigation() {
             </div>
           </div>
         </div>
-        <Button variant="ghost" className="flex items-center gap-2 h-8 rounded-full px-2">
-          {isLoading ? (
-            <Skeleton className="h-8 w-8 rounded-full" />
-          ) : (
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.image ?? undefined} />
-              <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-          )}
-          <p className="text-sm font-medium whitespace-nowrap">{user?.name ?? 'User'}</p>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2 h-8 rounded-full px-2">
+              {isLoading ? (
+                <Skeleton className="h-8 w-8 rounded-full" />
+              ) : (
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.image ?? undefined} />
+                  <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+              )}
+              <p className="text-sm font-medium whitespace-nowrap">{user?.name ?? 'User'}</p>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

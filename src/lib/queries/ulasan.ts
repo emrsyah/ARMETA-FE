@@ -7,29 +7,31 @@ import type {
   SearchResponse,
   CreateUlasanInput,
   EditUlasanInput,
-  SearchUlasanInput,
+  SearchVectorUlasanInput,
   UlasanIdInput,
   Like,
   Bookmark,
 } from '../schemas/ulasan.schema'
 import type { ApiResponse } from '../api/types'
 
-// Query Keys Factory
 export const ulasanKeys = {
   all: ['ulasan'] as const,
   lists: () => [...ulasanKeys.all, 'list'] as const,
   detail: (id: string) => [...ulasanKeys.all, 'detail', id] as const,
-  search: (query: string) => [...ulasanKeys.all, 'search', query] as const,
+  searchVector: (query: string) => [...ulasanKeys.all, 'search-vector', query] as const,
+  searchText: (query: string) => [...ulasanKeys.all, 'search-text', query] as const,
+  filtered: (from: string, to: string) => [...ulasanKeys.all, 'filtered', from, to] as const,
+  sorted: (sortBy: string, order: string) => [...ulasanKeys.all, 'sorted', sortBy, order] as const,
   liked: () => [...ulasanKeys.all, 'liked'] as const,
   bookmarked: () => [...ulasanKeys.all, 'bookmarked'] as const,
 }
 
-// Query Options (for use in route loaders)
 export const ulasanListQueryOptions = () =>
   queryOptions({
     queryKey: ulasanKeys.lists(),
     queryFn: async () => {
       const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL)
+
       return response.data.data
     },
   })
@@ -154,11 +156,52 @@ export function useEditUlasan() {
   })
 }
 
-// Mutation: Search ulasan
-export function useSearchUlasan() {
+// Mutation: Vector search ulasan (semantic similarity)
+export function useSearchVectorUlasan() {
   return useMutation({
-    mutationFn: async (data: SearchUlasanInput) => {
-      const response = await api.post<SearchResponse>(ULASAN_ENDPOINTS.SEARCH, data)
+    mutationFn: async (data: SearchVectorUlasanInput) => {
+      const response = await api.post<SearchResponse>(ULASAN_ENDPOINTS.SEARCH_VECTOR, data)
+      return response.data.data
+    },
+  })
+}
+
+// Query: Text search ulasan by keyword
+export function useSearchTextUlasan(keyword: string) {
+  return useQuery({
+    queryKey: ulasanKeys.searchText(keyword),
+    queryFn: async () => {
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SEARCH_TEXT, {
+        params: { q: keyword },
+      })
+      return response.data.data
+    },
+    enabled: keyword.length > 0,
+  })
+}
+
+// Query: Filter ulasan by date range
+export function useFilterUlasan(from: string, to: string) {
+  return useQuery({
+    queryKey: ulasanKeys.filtered(from, to),
+    queryFn: async () => {
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.FILTER, {
+        params: { from, to },
+      })
+      return response.data.data
+    },
+    enabled: !!from && !!to,
+  })
+}
+
+// Query: Sort ulasan
+export function useSortUlasan(sortBy: string = 'date', order: string = 'desc') {
+  return useQuery({
+    queryKey: ulasanKeys.sorted(sortBy, order),
+    queryFn: async () => {
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SORT, {
+        params: { sortBy, order },
+      })
       return response.data.data
     },
   })
@@ -174,8 +217,7 @@ export function useLikeUlasan() {
       return response.data.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.liked() })
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
     },
   })
 }
@@ -190,8 +232,7 @@ export function useUnlikeUlasan() {
       return response.data.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.liked() })
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
     },
   })
 }
@@ -206,7 +247,7 @@ export function useBookmarkUlasan() {
       return response.data.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.bookmarked() })
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
     },
   })
 }
@@ -221,7 +262,7 @@ export function useRemoveBookmark() {
       return response.data.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.bookmarked() })
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
     },
   })
 }

@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
+
 import { Input } from '@/components/ui/input'
 import { motion, LayoutGroup } from 'motion/react'
 import {
@@ -17,9 +17,9 @@ import {
   Send,
   ImageIcon,
   Calendar,
+  FileText,
 } from 'lucide-react'
-import { useState } from 'react'
-import CreateReviewModal from '@/components/create-review-modal'
+import { useState, useEffect } from 'react'
 import ReviewCard from '@/components/card/review-card'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
 
 function UlasanDetailPage() {
   const { ulasanId } = Route.useParams()
-  const { data: ulasan, isLoading: isUlasanLoading } = useUlasanDetail(ulasanId)
+  const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching } = useUlasanDetail(ulasanId)
   const { data: ulasanList, isLoading: isRepliesLoading } = useUlasanList()
 
   const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
@@ -42,6 +42,17 @@ function UlasanDetailPage() {
   const unlikeMutation = useUnlikeUlasan()
   const bookmarkMutation = useBookmarkUlasan()
   const removeBookmarkMutation = useRemoveBookmark()
+
+  const isMutating = likeMutation.isPending || unlikeMutation.isPending || bookmarkMutation.isPending || removeBookmarkMutation.isPending
+
+  useEffect(() => {
+    if (ulasan && !isMutating && !isUlasanRefetching) {
+      setLiked(!!ulasan.is_liked)
+      setBookmarked(!!ulasan.is_bookmarked)
+      setLikeCount(ulasan.total_likes ?? 0)
+      setBookmarkCount(ulasan.total_bookmarks ?? 0)
+    }
+  }, [ulasan, isMutating, isUlasanRefetching])
 
   // Filter replies to this ulasan
   const replies = ulasanList?.filter(
@@ -96,6 +107,9 @@ function UlasanDetailPage() {
     return <UlasanDetailSkeleton />
   }
 
+  const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
+  const getFileName = (url: string) => url.split('/').pop() || 'File';
+
   return (
     <LayoutGroup>
 
@@ -123,10 +137,11 @@ function UlasanDetailPage() {
                 className="absolute left-4 text-white hover:text-gray-300 text-2xl p-2"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setSelectedImageIndex(
-                    (selectedImageIndex - 1 + ulasan.files.length) %
-                      ulasan.files.length
-                  )
+                  let newIndex = (selectedImageIndex - 1 + ulasan.files.length) % ulasan.files.length;
+                  while (!isImage(ulasan.files[newIndex]) && newIndex !== selectedImageIndex) {
+                    newIndex = (newIndex - 1 + ulasan.files.length) % ulasan.files.length;
+                  }
+                  setSelectedImageIndex(newIndex)
                 }}
               >
                 ←
@@ -135,9 +150,11 @@ function UlasanDetailPage() {
                 className="absolute right-4 text-white hover:text-gray-300 text-2xl p-2"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setSelectedImageIndex(
-                    (selectedImageIndex + 1) % ulasan.files.length
-                  )
+                  let newIndex = (selectedImageIndex + 1) % ulasan.files.length;
+                  while (!isImage(ulasan.files[newIndex]) && newIndex !== selectedImageIndex) {
+                    newIndex = (newIndex + 1) % ulasan.files.length;
+                  }
+                  setSelectedImageIndex(newIndex)
                 }}
               >
                 →
@@ -163,27 +180,27 @@ function UlasanDetailPage() {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src="" />
+                  <AvatarImage src={ulasan?.user?.image || ""} />
                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
-                    U
+                    {ulasan?.user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold">Pengguna</p>
+                  <p className="font-semibold">{ulasan?.user?.name}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>
                       {ulasan?.created_at
                         ? new Date(ulasan.created_at).toLocaleDateString(
-                            'id-ID',
-                            {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            }
-                          )
+                          'id-ID',
+                          {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )
                         : 'Tanggal tidak tersedia'}
                     </span>
                   </div>
@@ -208,36 +225,52 @@ function UlasanDetailPage() {
               </p>
             </div>
 
-            {/* Images */}
+            {/* Files */}
             {ulasan?.files && ulasan.files.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ImageIcon className="h-4 w-4" />
-                  <span>{ulasan.files.length} Gambar</span>
+                  <span>{ulasan.files.length} Lampiran</span>
                 </div>
                 <div
-                  className={`grid gap-2 ${
-                    ulasan.files.length === 1
-                      ? 'grid-cols-1'
-                      : ulasan.files.length === 2
-                        ? 'grid-cols-2'
-                        : 'grid-cols-3'
-                  }`}
+                  className={`grid gap-2 ${ulasan.files.length === 1
+                    ? 'grid-cols-1'
+                    : ulasan.files.length === 2
+                      ? 'grid-cols-2'
+                      : 'grid-cols-3'
+                    }`}
                 >
-                  {ulasan.files.map((file, index) => (
-                    <button
-                      key={index}
-                      className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer"
-                      onClick={() => setSelectedImageIndex(index)}
-                    >
-                      <img
-                        src={file}
-                        alt={`Image ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                    </button>
-                  ))}
+                  {ulasan.files.map((file, index) => {
+                    if (isImage(file)) {
+                      return (
+                        <button
+                          key={index}
+                          className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer"
+                          onClick={() => setSelectedImageIndex(index)}
+                        >
+                          <img
+                            src={file}
+                            alt={`Image ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        </button>
+                      )
+                    } else {
+                      return (
+                        <a
+                          key={index}
+                          href={file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer border bg-gray-50 flex flex-col items-center justify-center p-4 hover:bg-gray-100 transition-colors"
+                        >
+                          <FileText className="h-12 w-12 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-600 font-medium truncate w-full text-center">{getFileName(file)}</span>
+                        </a>
+                      )
+                    }
+                  })}
                 </div>
               </div>
             )}
@@ -296,9 +329,6 @@ function UlasanDetailPage() {
             <Card className="overflow-hidden hover:border-primary/50 transition-colors">
               <CardContent className="py-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
                   <Input
                     readOnly
                     placeholder="Tulis balasan untuk ulasan ini..."
@@ -345,10 +375,12 @@ function UlasanDetailPage() {
                 avatarFallback="U"
                 title={reply.title}
                 content={reply.body}
-                images={reply.files}
+                files={reply.files}
                 commentCount={0}
-                bookmarkCount={0}
-                likeCount={0}
+                bookmarkCount={reply.total_bookmarks ?? 0}
+                likeCount={reply.total_likes ?? 0}
+                isLiked={!!reply.is_liked}
+                isBookmarked={!!reply.is_bookmarked}
               />
             ))
           ) : (

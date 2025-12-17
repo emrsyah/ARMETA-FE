@@ -1,16 +1,43 @@
-import { createFileRoute, Navigate, Outlet, useMatch } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatch } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
 import SidebarFilter from '@/components/sidebar-filter'
 
+// Filter search params type - shared across child routes
+export type FilterType = 'today' | 'week' | 'month' | 'year'
+export type SortByType = 'date' | 'likes' | 'bookmarks'
+export type OrderType = 'asc' | 'desc'
+
+export type FilterSearch = {
+  filter?: FilterType
+  sortBy?: SortByType
+  order?: OrderType
+}
+
 export const Route = createFileRoute('/(app)/a')({
+  validateSearch: (search: Record<string, unknown>): FilterSearch => {
+    return {
+      filter: ['today', 'week', 'month', 'year'].includes(search.filter as string)
+        ? (search.filter as FilterType)
+        : undefined,
+      sortBy: ['date', 'likes', 'bookmarks'].includes(search.sortBy as string)
+        ? (search.sortBy as SortByType)
+        : undefined,
+      order: ['asc', 'desc'].includes(search.order as string)
+        ? (search.order as OrderType)
+        : undefined,
+    }
+  },
   component: ALayout,
 })
 
 function ALayout() {
   const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
+  const isForumPage = useMatch({ from: '/(app)/a/forum/', shouldThrow: false })
 
+  // Determine current page type for sidebar filter
+  const currentPage = isForumPage ? 'forum' : 'ulasan'
 
   return (
     <SidebarProvider>
@@ -22,7 +49,7 @@ function ALayout() {
             <div className='flex-1 grow'>
               <Outlet />
             </div>
-            {!isArmePage && <SidebarFilter />}
+            {!isArmePage && <SidebarFilter currentPage={currentPage} />}
           </div>
         </div>
       </SidebarInset>

@@ -1,16 +1,17 @@
 import { useForm } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Button } from "./ui/button"
-import { Checkbox } from "./ui/checkbox"
 import { CreateForumInput, createForumSchema } from "@/lib/schemas"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X } from "lucide-react"
-import { useRef, useState } from "react"
+import { useMemo, useRef } from "react"
 import { Textarea } from "./ui/textarea"
-
-
+import { Input } from "./ui/input"
+import { Combobox } from "./ui/combobox"
+import { useSubjects } from "@/lib/queries/lecturer-subject"
+import { useCreateForum } from "@/lib/queries/forum"
 
 type Props = {
   open: boolean
@@ -19,6 +20,15 @@ type Props = {
 
 const CreateForumModal = ({ open, onOpenChange }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const { data: subjects = [] } = useSubjects()
+  const createForumMutation = useCreateForum()
+
+  const subjectList = useMemo(() => 
+    subjects.map((subject) => ({
+      value: subject.id_subject,
+      label: `${subject.code} - ${subject.name}`,
+    })), [subjects])
 
   const form = useForm<CreateForumInput>({
     resolver: standardSchemaResolver(createForumSchema),
@@ -26,36 +36,39 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
       title: '',
       description: '',
       id_subject: '',
+      files: [],
     },
   })
 
-  const [files, setFiles] = useState<File[]>([])
-  const [isAnonymous, setIsAnonymous] = useState(false)
-  const [onSubmitLoading, setOnSubmitLoading] = useState(false)
+  const files = form.watch('files') || []
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
-    setFiles(prev => [...prev, ...selectedFiles])
+    const currentFiles = form.getValues('files') || []
+    form.setValue('files', [...currentFiles, ...selectedFiles])
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
   }
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index))
+    const currentFiles = form.getValues('files') || []
+    form.setValue('files', currentFiles.filter((_, i) => i !== index))
   }
 
-  const onSubmit = (data: CreateForumInput) => {
-    console.log({ ...data, files, isAnonymous })
-    // TODO: Submit to API
-    setOnSubmitLoading(true)
-    // onOpenChange(false)
-    setTimeout(() => {
-      setOnSubmitLoading(false)
-      setFiles([])
-      setIsAnonymous(false)
+  const onSubmit = async (data: CreateForumInput) => {
+    try {
+      await createForumMutation.mutateAsync({
+        title: data.title,
+        description: data.description,
+        id_subject: data.id_subject,
+        files: data.files,
+      })
+      form.reset()
       onOpenChange(false)
-    }, 1000)
+    } catch (error) {
+      console.error('Failed to create forum:', error)
+    }
   }
 
   return (
@@ -76,18 +89,56 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Subject Selection */}
+            <FormField
+              name="id_subject"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mata Kuliah</FormLabel>
+                  <Combobox
+                    options={subjectList}
+                    value={field.value}
+                    onChange={(value) => field.onChange(value || '')}
+                    placeholder="Pilih mata kuliah..."
+                    searchPlaceholder="Cari mata kuliah..."
+                    emptyText="Mata kuliah tidak ditemukan."
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Title */}
+            <FormField
+              name="title"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Judul Forum</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      placeholder="Masukkan judul forum..."
+                      autoFocus 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Description */}
             <FormField
               name="description"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Isi Forum</FormLabel> */}
+                  <FormLabel>Isi Forum</FormLabel>
                   <FormControl>
                     <Textarea 
                       {...field} 
                       placeholder="Masukkan isi forum..."
-                      autoFocus 
                       className="min-h-[120px] resize-none"
                     />
                   </FormControl>
@@ -137,20 +188,11 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
                 >
                   <Paperclip className="size-5" />
                 </button>
-
-                {/* Anonymous Checkbox */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={isAnonymous}
-                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-                  />
-                  <span className="text-sm font-normal">Anonim</span>
-                </label>
               </div>
 
-              {/* Submit Buttons */}
+              {/* Submit Button */}
               <div className="flex gap-2">
-                <Button size={'lg'} type="submit" loading={onSubmitLoading}>
+                <Button size={'lg'} type="submit" loading={createForumMutation.isPending}>
                   Kirim
                 </Button>
               </div>

@@ -12,12 +12,20 @@ export const USER_ENDPOINTS = {
   LOGOUT: '/api/users/logout',
 } as const
 
+export const LECTURER_SUBJECT_ENDPOINTS = {
+  GET_LECTURERS: '/api/lecturer-subjects/getLecturers',
+  GET_SUBJECTS: '/api/lecturer-subjects/getSubjects',
+} as const
+
 export const ULASAN_ENDPOINTS = {
   CREATE: '/api/ulasan/createUlasan',
   EDIT: '/api/ulasan/editUlasan',
   GET_ALL: '/api/ulasan/getUlasan',
-  GET_BY_ID: '/api/ulasan/getUlasan', // With id_review param
-  SEARCH: '/api/ulasan/search',
+  GET_BY_ID: '/api/ulasan/getUlasanById',
+  SEARCH_VECTOR: '/api/ulasan/search',
+  SEARCH_TEXT: '/api/ulasan/searchUlasan',
+  FILTER: '/api/ulasan/filterUlasan',
+  SORT: '/api/ulasan/sortUlasan',
   LIKE: '/api/ulasan/likeUlasan',
   GET_LIKED: '/api/ulasan/likeUlasan',
   BOOKMARK: '/api/ulasan/bookmarkUlasan',
@@ -26,9 +34,11 @@ export const ULASAN_ENDPOINTS = {
 
 export const FORUM_ENDPOINTS = {
   CREATE: '/api/forum/createForum',
-  GET_ALL: '/api/forum/getForums', // Can be used without id_subject for all forums
-  GET_BY_SUBJECT: '/api/forum/getForums',
-  GET_BY_ID: '/api/forum/getForum', // Single forum with id_forum param
+  GET_ALL: '/api/forum/getAllForum',
+  GET_BY_ID: '/api/forum/getForumId',
+  GET_BY_SUBJECT: '/api/forum/getForumSubject',
+  SEARCH: '/api/forum/searchForum',
+  FILTER: '/api/forum/filterForum',
 } as const
 
 export const REPORT_ENDPOINTS = {
@@ -40,4 +50,3 @@ export const CHATBOT_ENDPOINTS = {
   ASK: '/api/chatbot/ask',
   HISTORY: '/api/chatbot/history',
 } as const
-

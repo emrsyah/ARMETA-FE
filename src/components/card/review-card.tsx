@@ -1,9 +1,9 @@
-import { Bookmark, Flag, Heart, MessageCircle, Share } from "lucide-react"
+import { Bookmark, Flag, Heart, MessageCircle, Share, FileText } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
 import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from "@/lib/queries/ulasan"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
     avatarFallback: string;
     title: string;
     content: string;
-    images: string[];
+    files: string[];
     commentCount: number;
     bookmarkCount: number;
     likeCount: number;
@@ -29,7 +29,7 @@ const ReviewCard = ({
     avatarFallback,
     title,
     content,
-    images,
+    files,
     commentCount,
     bookmarkCount,
     likeCount,
@@ -41,6 +41,13 @@ const ReviewCard = ({
     const [bookmarked, setBookmarked] = useState(isBookmarked)
     const [currentLikeCount, setCurrentLikeCount] = useState(likeCount)
     const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
+
+    useEffect(() => {
+        setLiked(isLiked)
+        setBookmarked(isBookmarked)
+        setCurrentLikeCount(likeCount)
+        setCurrentBookmarkCount(bookmarkCount)
+    }, [isLiked, isBookmarked, likeCount, bookmarkCount])
 
     const likeMutation = useLikeUlasan()
     const unlikeMutation = useUnlikeUlasan()
@@ -95,6 +102,9 @@ const ReviewCard = ({
         }
     }
 
+    const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
+    const getFileName = (url: string) => url.split('/').pop() || 'File';
+
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
@@ -114,39 +124,60 @@ const ReviewCard = ({
             <CardContent className="flex items-start gap-8">
                 <div>
                     <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
-                        <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title}</h3>
+                        <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
                     </Link>
                     <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
-                {images.length > 0 && (
+                {files && files.length > 0 && (
                     <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
-                        {images.length === 1 ? (
-                            <button
-                                className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => console.log("Image 1 clicked")}
+                        {files.length === 1 ? (
+                            <a
+                                href={files[0]}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <img
-                                    src={images[0]}
-                                    alt="Review image 1"
-                                    className="w-full h-32 object-cover rounded-lg"
-                                />
-                            </button>
+                                {isImage(files[0]) ? (
+                                    <img
+                                        src={files[0]}
+                                        alt="Review attachment"
+                                        className="w-full h-32 object-cover rounded-lg"
+                                    />
+                                ) : (
+                                    <div className="w-full h-32 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-4 text-gray-500 border border-gray-200">
+                                        <FileText className="h-8 w-8 mb-2" />
+                                        <span className="text-xs text-center truncate w-full px-2">{getFileName(files[0])}</span>
+                                    </div>
+                                )}
+                            </a>
                         ) : (
-                            <div className={`grid gap-1 ${images.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
-                                {images.slice(0, 4).map((image, index) => (
-                                    <button
+                            <div className={`grid gap-1 ${files.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
+                                {files.slice(0, 4).map((file, index) => (
+                                    <a
                                         key={index}
-                                        className={`cursor-pointer hover:opacity-90 transition-opacity ${index === 0 && images.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
+                                        href={file}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && files.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
                                             }`}
-                                        onClick={() => console.log(`Image ${index + 1} clicked`)}
+                                        onClick={(e) => e.stopPropagation()}
                                     >
-                                        <img
-                                            src={image}
-                                            alt={`Review image ${index + 1}`}
-                                            className={`w-full object-cover rounded ${index === 0 && images.length > 1 ? 'h-24' : 'h-16'
-                                                }`}
-                                        />
-                                    </button>
+                                        {isImage(file) ? (
+                                            <img
+                                                src={file}
+                                                alt={`Review attachment ${index + 1}`}
+                                                className={`w-full object-cover rounded ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                    }`}
+                                            />
+                                        ) : (
+                                            <div className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                }`}>
+                                                <FileText className="h-4 w-4 mb-1" />
+                                                <span className="text-[10px] text-center truncate w-full">{index === 0 && files.length > 1 ? getFileName(file) : 'PDF'}</span>
+                                            </div>
+                                        )}
+                                    </a>
                                 ))}
                             </div>
                         )}

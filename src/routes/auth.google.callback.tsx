@@ -7,13 +7,18 @@ type CallbackSearch = {
   accessToken?: string
   refreshToken?: string
   error?: string
+  code?: string
 }
 
-export const Route = createFileRoute('/auth/callback')({
+export const Route = createFileRoute('/auth/google/callback')({
   validateSearch: (search: Record<string, unknown>): CallbackSearch => {
+    console.log('============== OKE ====================')
+    console.log(search)
+    console.log('============== POKE ====================')
     return {
       accessToken: search.accessToken as string | undefined,
       refreshToken: search.refreshToken as string | undefined,
+      code: search.code as string | undefined,
       error: search.error as string | undefined,
     }
   },
@@ -22,7 +27,7 @@ export const Route = createFileRoute('/auth/callback')({
 
 function AuthCallback() {
   const navigate = useNavigate()
-  const { accessToken, refreshToken, error } = Route.useSearch()
+  const { accessToken, refreshToken, error, code } = Route.useSearch()
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -41,6 +46,10 @@ function AuthCallback() {
       // Store access token if needed (optional, depends on your auth flow)
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken)
+      }
+
+      if (code) {
+        localStorage.setItem('code', code)
       }
 
       // Small delay to ensure everything is set

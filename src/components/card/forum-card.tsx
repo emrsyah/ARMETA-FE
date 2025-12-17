@@ -18,8 +18,10 @@ export type ForumAuthor = {
 }
 
 export type ForumCardProps = {
+    id: string
     tags: string[]
     title: string
+    description?: string
     replies: ForumReply[]
     commentCount: number
     bookmarkCount: number
@@ -29,8 +31,10 @@ export type ForumCardProps = {
 }
 
 const ForumCard = ({
+    id,
     tags,
     title,
+    description,
     replies,
     commentCount,
     bookmarkCount,
@@ -51,20 +55,25 @@ const ForumCard = ({
                 </Button>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-                <Link to="/a/forum/$forumId" params={{ forumId: "218e12e89ybhacjh" }}>
+                <Link to="/a/forum/$forumId" params={{ forumId: id }}>
                     <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">{title}</h3>
                 </Link>
-                <div className="flex gap-3">
-                    <Separator orientation="vertical" className="h-2 w-2 bg-gray-200" />
-                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                        {replies.map((reply, index) => (
-                            <div key={index}>
-                                <span className="text-blue-500 font-medium">{reply.authorName}:</span>{" "}
-                                <span>{reply.content}</span>
-                            </div>
-                        ))}
+                {description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+                )}
+                {replies.length > 0 && (
+                    <div className="flex gap-3">
+                        <Separator orientation="vertical" className="h-2 w-2 bg-gray-200" />
+                        <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                            {replies.map((reply, index) => (
+                                <div key={index}>
+                                    <span className="text-blue-500 font-medium">{reply.authorName}:</span>{" "}
+                                    <span>{reply.content}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

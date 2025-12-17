@@ -17,16 +17,19 @@ export interface ApiError {
   message: string
 }
 
-// Pagination types (if needed in future)
+// Pagination types
+export interface PaginationInfo {
+  currentPage: number
+  limit: number
+  totalData: number
+  totalPage: number
+  hasNextPage: boolean
+}
+
 export interface PaginatedResponse<T> {
   status: boolean
   message: string
+  pagination?: PaginationInfo
   data: T[]
-  pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
 }
 

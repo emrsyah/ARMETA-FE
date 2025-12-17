@@ -37,13 +37,13 @@ const logError = (error: AxiosError): void => {
 
 const logRequest = (config: InternalAxiosRequestConfig): void => {
   if (typeof window === 'undefined') return
-  
+
   console.log(`🔵 API Request: ${config.method?.toUpperCase()} ${config.url}`)
 }
 
 const logResponse = (response: AxiosResponse): void => {
   if (typeof window === 'undefined') return
-  
+
   console.log(`🟢 API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`)
 }
 
@@ -97,11 +97,11 @@ const processQueue = (error: AxiosError | null) => {
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const accessToken = getStorageItem('accessToken')
-    
+
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
-    
+
     logRequest(config)
     return config
   },
@@ -146,19 +146,19 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = getStorageItem('refreshToken')
-        
+
         if (!refreshToken) {
           throw new Error('No refresh token available')
         }
 
         console.log('🔄 Refreshing access token...')
         const response = await api.post('/api/users/refresh-token', { refreshToken })
-        
+
         if (response.data?.accessToken) {
           setStorageItem('accessToken', response.data.accessToken)
           console.log('✅ Token refreshed successfully')
         }
-        
+
         processQueue(null)
         return api(originalRequest)
       } catch (refreshError) {
@@ -167,7 +167,7 @@ api.interceptors.response.use(
         processQueue(refreshError as AxiosError)
         removeStorageItem('accessToken')
         removeStorageItem('refreshToken')
-        window.location.href = '/auth/google/login'
+        window.location.href = '/'
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
