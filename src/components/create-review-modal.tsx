@@ -14,11 +14,13 @@ import { useMemo, useRef, useEffect } from "react"
 import z from "zod"
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
 import { useCreateUlasan } from "@/lib/queries/ulasan"
+import { toast } from "sonner"
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   replyToId?: string
+  forumId?: string
 }
 
 const extendedCreateUlasanSchema = createUlasanSchema.extend({
@@ -27,7 +29,7 @@ const extendedCreateUlasanSchema = createUlasanSchema.extend({
 
 type ExtendedCreateUlasanInput = z.infer<typeof extendedCreateUlasanSchema>
 
-const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
+const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: lecturers = [] } = useLecturers()
@@ -49,7 +51,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
   const form = useForm<ExtendedCreateUlasanInput>({
     resolver: standardSchemaResolver(extendedCreateUlasanSchema),
     defaultValues: {
-      type: replyToId ? 'reply' : 'dosen',
+      type: (replyToId || forumId) ? 'reply' : 'matkul',
       judulUlasan: '',
       textUlasan: '',
       files: [],
@@ -60,13 +62,13 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
   useEffect(() => {
     if (open) {
       form.reset({
-        type: replyToId ? 'reply' : 'dosen',
+        type: (replyToId || forumId) ? 'reply' : 'dosen',
         judulUlasan: '',
         textUlasan: '',
         files: [],
       })
     }
-  }, [open, replyToId, form])
+  }, [open, replyToId, forumId, form])
 
   const files = form.watch('files') || []
   const reviewType = form.watch('type')
@@ -87,12 +89,25 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
 
   const onSubmit = async (data: ExtendedCreateUlasanInput) => {
     try {
+      if (!data.judulUlasan || !data.textUlasan) {
+        toast('Judul dan Ulasan tidak boleh kosong')
+        return
+      }
+      if (data.type === 'reply' && !replyToId) {
+        toast('Reply ID tidak ditemukan')
+        return
+      }
+      if ((data.type == 'dosen' || data.type == 'matkul') && (!data.idDosen && !data.idMatkul)) {
+        toast('Dosen atau Matkul Wajib Diisi')
+        return
+      }
       await createUlasanMutation.mutateAsync({
         judulUlasan: data.judulUlasan,
         textUlasan: data.textUlasan,
         idDosen: data.type === 'dosen' ? data.idDosen : undefined,
         idMatkul: data.type === 'matkul' ? data.idMatkul : undefined,
         idReply: data.type === 'reply' ? replyToId : undefined,
+        idForum: forumId,
         files: data.files,
       })
       form.reset()
@@ -115,13 +130,13 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
           }}
         >
           <DialogHeader className="mb-4">
-            <DialogTitle>{replyToId ? 'Buat Balasan' : 'Buat Ulasan'}</DialogTitle>
+            <DialogTitle>{(replyToId || forumId) ? 'Buat Balasan' : 'Buat Ulasan'}</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Review Type Tabs - Hide if replying */}
-              {!replyToId && (
+              {!replyToId && !forumId && (
                 <FormField
                   name="type"
                   control={form.control}
@@ -152,7 +167,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
               )}
 
               {/* Select Dosen/Matkul - Hide if replying */}
-              {!replyToId && (
+              {!replyToId && !forumId && (
                 <FormItem>
                   <FormLabel>
                     {reviewType === 'dosen' ? 'Pilih Dosen' : 'Pilih Mata Kuliah'}
@@ -185,11 +200,11 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Judul {replyToId ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormLabel>Judul {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder={`Masukkan judul ${replyToId ? 'balasan' : 'ulasan'}...`}
+                        placeholder={`Masukkan judul ${(replyToId || forumId) ? 'balasan' : 'ulasan'}...`}
                         autoFocus
                       />
                     </FormControl>
@@ -204,11 +219,11 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Isi {replyToId ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormLabel>Isi {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder={`Tulis ${replyToId ? 'balasan' : 'ulasan'} Anda di sini...`}
+                        placeholder={`Tulis ${(replyToId || forumId) ? 'balasan' : 'ulasan'} Anda di sini...`}
                         className="min-h-[120px] resize-none"
                       />
                     </FormControl>

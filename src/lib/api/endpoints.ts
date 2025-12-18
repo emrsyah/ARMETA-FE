@@ -38,7 +38,11 @@ export const FORUM_ENDPOINTS = {
   GET_BY_ID: '/api/forum/getForumId',
   GET_BY_SUBJECT: '/api/forum/getForumSubject',
   SEARCH: '/api/forum/searchForum',
-  FILTER: '/api/forum/filterForum',
+  LIKE: '/api/forum/likeForum',
+  GET_LIKED: '/api/forum/likeForum',
+  BOOKMARK: '/api/forum/bookmarkForum',
+  GET_BOOKMARKED: '/api/forum/bookmarkForum',
+  SEARCH_SIMILAR: '/api/forum/search',
 } as const
 
 export const REPORT_ENDPOINTS = {

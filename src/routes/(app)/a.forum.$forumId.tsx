@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useForumDetail } from '@/lib/queries/forum'
-import { useUlasanList } from '@/lib/queries/ulasan'
+import { useForumDetail, useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from '@/lib/queries/forum'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,25 +17,97 @@ import {
   Share,
   Send,
 } from 'lucide-react'
-import { useState } from 'react'
-import CreateReviewModal from '@/components/create-review-modal'
+import { useState, useEffect } from 'react'
 import ReviewCard from '@/components/card/review-card'
+import CreateReviewModal from '@/components/create-review-modal'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   component: ForumDetailPage,
 })
 
+// Helper to get initials from name
+const getInitials = (name: string | null | undefined) => {
+  if (!name) return '?'
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
 function ForumDetailPage() {
   const { forumId } = Route.useParams()
   const { data: forum, isLoading: isForumLoading } = useForumDetail(forumId)
-  const { data: ulasanList, isLoading: isUlasanLoading } = useUlasanList()
 
   const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
 
-  // Filter replies that belong to this forum
-  const forumReplies = ulasanList?.filter(
-    (ulasan) => ulasan.id_forum === forumId
-  )
+  // Local state for optimistic updates
+  const [localIsLiked, setLocalIsLiked] = useState(false)
+  const [localLikeCount, setLocalLikeCount] = useState(0)
+  const [localIsBookmarked, setLocalIsBookmarked] = useState(false)
+  const [localBookmarkCount, setLocalBookmarkCount] = useState(0)
+
+  // Sync with forum data when it changes
+  useEffect(() => {
+    if (forum) {
+      setLocalIsLiked(forum.is_liked)
+      setLocalLikeCount(forum.total_like)
+      setLocalIsBookmarked(forum.is_bookmarked)
+      setLocalBookmarkCount(forum.total_bookmark)
+    }
+  }, [forum])
+
+  // Mutations
+  const likeMutation = useLikeForum()
+  const unlikeMutation = useUnlikeForum()
+  const bookmarkMutation = useBookmarkForum()
+  const unbookmarkMutation = useUnbookmarkForum()
+
+  const handleLike = () => {
+    if (localIsLiked) {
+      setLocalIsLiked(false)
+      setLocalLikeCount(prev => Math.max(0, prev - 1))
+      unlikeMutation.mutate(forumId, {
+        onError: () => {
+          setLocalIsLiked(true)
+          setLocalLikeCount(prev => prev + 1)
+        }
+      })
+    } else {
+      setLocalIsLiked(true)
+      setLocalLikeCount(prev => prev + 1)
+      likeMutation.mutate(forumId, {
+        onError: () => {
+          setLocalIsLiked(false)
+          setLocalLikeCount(prev => Math.max(0, prev - 1))
+        }
+      })
+    }
+  }
+
+  const handleBookmark = () => {
+    if (localIsBookmarked) {
+      setLocalIsBookmarked(false)
+      setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+      unbookmarkMutation.mutate(forumId, {
+        onError: () => {
+          setLocalIsBookmarked(true)
+          setLocalBookmarkCount(prev => prev + 1)
+        }
+      })
+    } else {
+      setLocalIsBookmarked(true)
+      setLocalBookmarkCount(prev => prev + 1)
+      bookmarkMutation.mutate(forumId, {
+        onError: () => {
+          setLocalIsBookmarked(false)
+          setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+        }
+      })
+    }
+  }
 
   if (isForumLoading) {
     return <ForumDetailSkeleton />
@@ -44,8 +115,6 @@ function ForumDetailPage() {
 
   return (
     <LayoutGroup>
-
-
       <div className="space-y-6 pb-60">
         {/* Back button */}
         <Link
@@ -91,13 +160,13 @@ function ForumDetailPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="" />
+                  <AvatarImage src={forum?.user?.image ?? undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    U
+                    {getInitials(forum?.user?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">Pembuat Forum</p>
+                  <p className="font-medium text-sm">{forum?.user?.name ?? 'Anonymous'}</p>
                   <p className="text-xs text-muted-foreground">
                     {forum?.created_at
                       ? new Date(forum.created_at).toLocaleDateString('id-ID', {
@@ -116,15 +185,15 @@ function ForumDetailPage() {
             <div className="flex items-center gap-2 w-full">
               <Button variant="ghost" size="sm" className="gap-2">
                 <MessageCircle className="h-4 w-4" />
-                <span>{forumReplies?.length || 0} Balasan</span>
+                <span>{forum?.total_reply ?? 0} Balasan</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Bookmark className="h-4 w-4" />
-                <span>Simpan</span>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={handleBookmark}>
+                <Bookmark className={cn("h-4 w-4", localIsBookmarked && "fill-current text-yellow-500")} />
+                <span>{localBookmarkCount} Simpan</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Heart className="h-4 w-4" />
-                <span>Suka</span>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={handleLike}>
+                <Heart className={cn("h-4 w-4", localIsLiked && "fill-current text-red-500")} />
+                <span>{localLikeCount} Suka</span>
               </Button>
               <Button variant="ghost" size="sm" className="gap-2 ml-auto">
                 <Share className="h-4 w-4" />
@@ -149,9 +218,6 @@ function ForumDetailPage() {
             <Card className="overflow-hidden hover:border-primary/50 transition-colors">
               <CardContent className="py-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
                   <Input
                     readOnly
                     placeholder="Tulis balasan untuk diskusi ini..."
@@ -170,40 +236,25 @@ function ForumDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">
-              Balasan ({forumReplies?.length || 0})
+              Balasan ({forum?.reviews?.length || 0})
             </h2>
           </div>
 
-          {isUlasanLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : forumReplies && forumReplies.length > 0 ? (
-            forumReplies.map((reply) => (
+          {forum?.reviews && forum.reviews.length > 0 ? (
+            forum.reviews.map((reply) => (
               <ReviewCard
                 key={reply.id_review}
                 id={reply.id_review}
-                userName="User"
-                avatarFallback="U"
-                title={reply.title}
-                content={reply.body}
-                files={reply.files}
-                commentCount={0}
-                bookmarkCount={reply.total_bookmarks ?? 0}
-                likeCount={reply.total_likes ?? 0}
-                isLiked={!!reply.is_liked}
-                isBookmarked={!!reply.is_bookmarked}
+                userName={reply.user?.name ?? 'Anonymous'}
+                avatarUrl={reply.user?.image ?? undefined}
+                avatarFallback={getInitials(reply.user?.name)}
+                title={reply.title ?? ''}
+                content={reply.body ?? ''}
+                files={reply.files ?? []}
+                commentCount={reply.total_reply || 0}
+                bookmarkCount={reply.total_bookmark || 0}
+                likeCount={reply.total_like || 0}
+                isReply={true}
               />
             ))
           ) : (
@@ -221,6 +272,11 @@ function ForumDetailPage() {
           )}
         </div>
       </div>
+      <CreateReviewModal
+        open={openCreateReviewModal}
+        onOpenChange={setOpenCreateReviewModal}
+        forumId={forumId}
+      />
     </LayoutGroup>
   )
 }

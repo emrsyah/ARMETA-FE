@@ -376,7 +376,7 @@ function UlasanDetailPage() {
                 title={reply.title || "" /* Title might be empty for replies */}
                 content={reply.body || ""}
                 files={reply.files}
-                commentCount={0}
+                commentCount={reply.total_reply || 0}
                 bookmarkCount={reply.total_bookmarks ?? 0}
                 likeCount={reply.total_likes ?? 0}
                 isLiked={!!reply.is_liked}

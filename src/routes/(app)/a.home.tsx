@@ -83,13 +83,15 @@ function HomePage() {
             <ReviewCard
               key={ulasan.id_review}
               id={ulasan.id_review}
+              subjectName={ulasan.lecturer_name != "" ? ulasan.lecturer_name : ulasan.subject_name != "" ? ulasan.subject_name : ""}
+              type={ulasan.lecturer_name != "" ? "dosen" : ulasan.subject_name != "" ? "matkul" : undefined}
               userName={ulasan.user?.name || 'User'} // TODO: Fetch user data for each review
               avatarFallback="U"
               avatarUrl={ulasan.user?.image || 'U'}
               title={ulasan.title}
               content={ulasan.body}
               files={ulasan.files}
-              commentCount={0}
+              commentCount={ulasan.total_reply || 0}
               bookmarkCount={ulasan.total_bookmarks ?? 0}
               likeCount={ulasan.total_likes ?? 0}
               isLiked={!!ulasan.is_liked}

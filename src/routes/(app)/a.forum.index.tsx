@@ -1,51 +1,40 @@
 import { createFileRoute } from '@tanstack/react-router'
 import ForumCard from '@/components/card/forum-card'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import CreateForumModal from '@/components/create-forum-modal'
 import { Input } from '@/components/ui/input'
 import { motion, LayoutGroup } from 'motion/react'
-import { useAllForums, useFilterForum } from '@/lib/queries'
+import { useForumList } from '@/lib/queries'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Route as ALayoutRoute } from './a'
 import { getDateRangeFromFilter } from '@/lib/utils'
+import type { GetAllForumInput } from '@/lib/schemas/forum.schema'
 
 export const Route = createFileRoute('/(app)/a/forum/')({
   component: ForumPage,
 })
 
-// Helper to format timestamp
-function formatTimestamp(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'Baru saja'
-  if (diffMins < 60) return `${diffMins} menit yang lalu`
-  if (diffHours < 24) return `${diffHours} jam yang lalu`
-  if (diffDays < 7) return `${diffDays} hari yang lalu`
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
 function ForumPage() {
   const [openCreateForumModal, setOpenCreateForumModal] = useState(false)
   const search = ALayoutRoute.useSearch()
 
-  // Calculate date range if filter is active
-  const dateRange = search.filter ? getDateRangeFromFilter(search.filter) : null
+  // Build filter params from search state
+  const filterParams = useMemo<GetAllForumInput | undefined>(() => {
+    const dateRange = search.filter ? getDateRangeFromFilter(search.filter) : null
 
-  // Use different queries based on active filter
-  const { data: allForums, isLoading: isAllLoading } = useAllForums()
-  const { data: filteredForums, isLoading: isFilterLoading } = useFilterForum(
-    dateRange?.from ?? '',
-    dateRange?.to ?? ''
-  )
+    if (!dateRange && !search.sortBy) {
+      return undefined
+    }
 
-  // Determine which data to use
-  const forums = search.filter ? filteredForums : allForums
-  const isLoading = search.filter ? isFilterLoading : isAllLoading
+    return {
+      ...(dateRange && { from: dateRange.from, to: dateRange.to }),
+      ...(search.sortBy && { sortBy: search.sortBy as GetAllForumInput['sortBy'] }),
+      ...(search.order && { order: search.order as GetAllForumInput['order'] }),
+    }
+  }, [search.filter, search.sortBy, search.order])
+
+  // Use unified query with optional filters
+  const { data: forums, isLoading } = useForumList(filterParams)
 
   return (
     <LayoutGroup>
@@ -100,19 +89,7 @@ function ForumPage() {
           forums.map((forum) => (
             <ForumCard
               key={forum.id_forum}
-              id={forum.id_forum}
-              tags={[]} // TODO: Add tags when API supports it
-              title={forum.title}
-              description={forum.description ?? undefined}
-              replies={[]} // TODO: Add replies when API supports it
-              commentCount={0}
-              bookmarkCount={0}
-              likeCount={0}
-              author={{
-                name: 'User', // TODO: Fetch user data
-                initials: 'U',
-              }}
-              timestamp={formatTimestamp(forum.created_at)}
+              {...forum}
             />
           ))
         ) : (

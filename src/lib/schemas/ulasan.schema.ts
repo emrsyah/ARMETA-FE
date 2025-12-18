@@ -13,6 +13,7 @@ export const replySchema = z.object({
   }),
   total_likes: z.number().default(0),
   total_bookmarks: z.number().default(0),
+  total_reply: z.number().default(0),
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
   title: z.string().optional(), // Title might not be selected in replies query
@@ -32,6 +33,7 @@ export const ulasanSchema = z.object({
   body: z.string(),
   total_likes: z.number().default(0),
   total_bookmarks: z.number().default(0),
+  total_reply: z.number().default(0),
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
   reply: z.array(z.string()).default([]), // This seems to be the old field maybe? Keep it for now.
@@ -97,7 +99,7 @@ export const filterUlasanSchema = z.object({
 export type FilterUlasanInput = z.infer<typeof filterUlasanSchema>
 
 // Sort ulasan request
-export const sortByEnum = z.enum(['date', 'most_like', 'most_bookmark', 'most_popular'])
+export const sortByEnum = z.enum(['date', 'most_like', 'most_bookmark', 'most_popular', 'most_reply'])
 export const sortOrderEnum = z.enum(['asc', 'desc'])
 
 export const sortUlasanSchema = z.object({
@@ -166,6 +168,7 @@ export const ulasanListItemSchema = ulasanSchema.extend({
   semester: z.number().optional(),
   total_likes: z.number().default(0),
   total_bookmarks: z.number().default(0),
+  total_reply: z.number().default(0),
 })
 
 export type UlasanListItem = z.infer<typeof ulasanListItemSchema>

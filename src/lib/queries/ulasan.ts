@@ -125,6 +125,11 @@ export function useCreateUlasan() {
       if (variables.idReply) {
         queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.idReply) })
       }
+
+      // If this was a forum reply, invalidate the forum detail to fetch the new reply
+      if (variables.idForum) {
+        queryClient.invalidateQueries({ queryKey: ['forum', 'detail', variables.idForum] })
+      }
     },
   })
 }

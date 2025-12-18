@@ -5,57 +5,147 @@ import { Badge } from "../ui/badge"
 import { Separator } from "../ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Link } from "@tanstack/react-router"
+import { cn } from "@/lib/utils"
+import type { Forum } from "@/lib/schemas/forum.schema"
+import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from "@/lib/queries/forum"
+import { useState, useEffect } from "react"
 
 export type ForumReply = {
     authorName: string
     content: string
 }
 
-export type ForumAuthor = {
-    name: string
-    avatar?: string
-    initials: string
+export type ForumCardProps = Forum & {
+    replies?: ForumReply[]
 }
 
-export type ForumCardProps = {
-    id: string
-    tags: string[]
-    title: string
-    description?: string
-    replies: ForumReply[]
-    commentCount: number
-    bookmarkCount: number
-    likeCount: number
-    author: ForumAuthor
-    timestamp: string
+// Helper to format date
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    })
+}
+
+// Helper to get initials from name
+const getInitials = (name: string | null) => {
+    if (!name) return '?'
+    return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
 }
 
 const ForumCard = ({
-    id,
-    tags,
+    id_forum,
     title,
     description,
-    replies,
-    commentCount,
-    bookmarkCount,
-    likeCount,
-    author,
-    timestamp,
+    subject_name,
+    user,
+    created_at,
+    total_like,
+    total_bookmark,
+    total_reply,
+    is_liked,
+    is_bookmarked,
+    replies = [],
 }: ForumCardProps) => {
+    // Local state for optimistic updates
+    const [localIsLiked, setLocalIsLiked] = useState(is_liked)
+    const [localLikeCount, setLocalLikeCount] = useState(total_like)
+    const [localIsBookmarked, setLocalIsBookmarked] = useState(is_bookmarked)
+    const [localBookmarkCount, setLocalBookmarkCount] = useState(total_bookmark)
+
+    // Sync with props when they change (e.g., from refetch)
+    useEffect(() => {
+        setLocalIsLiked(is_liked)
+        setLocalLikeCount(total_like)
+        setLocalIsBookmarked(is_bookmarked)
+        setLocalBookmarkCount(total_bookmark)
+    }, [is_liked, total_like, is_bookmarked, total_bookmark])
+
+    // Mutations
+    const likeMutation = useLikeForum()
+    const unlikeMutation = useUnlikeForum()
+    const bookmarkMutation = useBookmarkForum()
+    const unbookmarkMutation = useUnbookmarkForum()
+
+    const handleLike = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        if (localIsLiked) {
+            // Optimistic unlike
+            setLocalIsLiked(false)
+            setLocalLikeCount(prev => Math.max(0, prev - 1))
+            unlikeMutation.mutate(id_forum, {
+                onError: () => {
+                    // Revert on error
+                    setLocalIsLiked(true)
+                    setLocalLikeCount(prev => prev + 1)
+                }
+            })
+        } else {
+            // Optimistic like
+            setLocalIsLiked(true)
+            setLocalLikeCount(prev => prev + 1)
+            likeMutation.mutate(id_forum, {
+                onError: () => {
+                    // Revert on error
+                    setLocalIsLiked(false)
+                    setLocalLikeCount(prev => Math.max(0, prev - 1))
+                }
+            })
+        }
+    }
+
+    const handleBookmark = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        if (localIsBookmarked) {
+            // Optimistic unbookmark
+            setLocalIsBookmarked(false)
+            setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+            unbookmarkMutation.mutate(id_forum, {
+                onError: () => {
+                    // Revert on error
+                    setLocalIsBookmarked(true)
+                    setLocalBookmarkCount(prev => prev + 1)
+                }
+            })
+        } else {
+            // Optimistic bookmark
+            setLocalIsBookmarked(true)
+            setLocalBookmarkCount(prev => prev + 1)
+            bookmarkMutation.mutate(id_forum, {
+                onError: () => {
+                    // Revert on error
+                    setLocalIsBookmarked(false)
+                    setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+                }
+            })
+        }
+    }
+
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
-                    {tags.map((tag, index) => (
-                        <Badge key={index} variant={'secondary'}>{tag}</Badge>
-                    ))}
+                    {subject_name && (
+                        <Badge variant={'secondary'}>{subject_name}</Badge>
+                    )}
                 </div>
                 <Button variant="ghost" size="icon">
                     <Flag />
                 </Button>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-                <Link to="/a/forum/$forumId" params={{ forumId: id }}>
+                <Link to="/a/forum/$forumId" params={{ forumId: id_forum }}>
                     <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">{title}</h3>
                 </Link>
                 {description && (
@@ -79,15 +169,15 @@ const ForumCard = ({
                 <div className="flex items-center gap-3">
                     <Button variant="ghost">
                         <MessageCircle />
-                        <span>{commentCount}</span>
+                        <span>{total_reply}</span>
                     </Button>
-                    <Button variant="ghost">
-                        <Bookmark />
-                        <span>{bookmarkCount}</span>
+                    <Button variant="ghost" onClick={handleBookmark}>
+                        <Bookmark className={cn(localIsBookmarked && "fill-current text-yellow-500")} />
+                        <span>{localBookmarkCount}</span>
                     </Button>
-                    <Button variant="ghost">
-                        <Heart />
-                        <span>{likeCount}</span>
+                    <Button variant="ghost" onClick={handleLike}>
+                        <Heart className={cn(localIsLiked && "fill-current text-red-500")} />
+                        <span>{localLikeCount}</span>
                     </Button>
                     <Button variant="ghost">
                         <Share />
@@ -97,14 +187,14 @@ const ForumCard = ({
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-3 cursor-pointer group">
                         <Avatar>
-                            <AvatarImage src={author.avatar} />
-                            <AvatarFallback>{author.initials}</AvatarFallback>
+                            <AvatarImage src={user.image ?? undefined} />
+                            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                         </Avatar>
                         <span className="transition-all font-semibold group-hover:underline">
-                            {author.name}
+                            {user.name ?? 'Anonymous'}
                         </span>
                     </div>
-                    <p className="text-sm text-muted-foreground ">{timestamp}</p>
+                    <p className="text-sm text-muted-foreground ">{formatDate(created_at)}</p>
                 </div>
             </CardFooter>
         </Card>

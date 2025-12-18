@@ -3,26 +3,29 @@ import api from '../api/client'
 import { FORUM_ENDPOINTS } from '../api/endpoints'
 import type {
   ForumResponse,
+  ForumDetailResponse,
   ForumListResponse,
   CreateForumInput,
+  GetAllForumInput,
 } from '../schemas/forum.schema'
 
 // Query Keys Factory
 export const forumKeys = {
   all: ['forum'] as const,
-  lists: () => [...forumKeys.all, 'list'] as const,
+  lists: (filters?: GetAllForumInput) => [...forumKeys.all, 'list', filters] as const,
   bySubject: (subjectId: string) => [...forumKeys.all, 'subject', subjectId] as const,
   detail: (id: string) => [...forumKeys.all, 'detail', id] as const,
   search: (keyword: string) => [...forumKeys.all, 'search', keyword] as const,
-  filtered: (from: string, to: string) => [...forumKeys.all, 'filtered', from, to] as const,
 }
 
 // Query Options (for use in route loaders)
-export const allForumsQueryOptions = () =>
+export const forumListQueryOptions = (filters?: GetAllForumInput) =>
   queryOptions({
-    queryKey: forumKeys.lists(),
+    queryKey: forumKeys.lists(filters),
     queryFn: async () => {
-      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_ALL)
+      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_ALL, {
+        params: filters,
+      })
       return response.data.data
     },
   })
@@ -43,7 +46,7 @@ export const forumDetailQueryOptions = (forumId: string) =>
   queryOptions({
     queryKey: forumKeys.detail(forumId),
     queryFn: async () => {
-      const response = await api.get<ForumResponse>(FORUM_ENDPOINTS.GET_BY_ID, {
+      const response = await api.get<ForumDetailResponse>(FORUM_ENDPOINTS.GET_BY_ID, {
         params: { id_forum: forumId },
       })
       return response.data.data
@@ -51,9 +54,9 @@ export const forumDetailQueryOptions = (forumId: string) =>
     enabled: !!forumId,
   })
 
-// Query: Get all forums
-export function useAllForums() {
-  return useQuery(allForumsQueryOptions())
+// Query: Get all forums (with optional filters/sorting)
+export function useForumList(filters?: GetAllForumInput) {
+  return useQuery(forumListQueryOptions(filters))
 }
 
 // Query: Get forums by subject
@@ -80,19 +83,7 @@ export function useSearchForum(keyword: string) {
   })
 }
 
-// Query: Filter forums by date range
-export function useFilterForum(from: string, to: string) {
-  return useQuery({
-    queryKey: forumKeys.filtered(from, to),
-    queryFn: async () => {
-      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.FILTER, {
-        params: { from, to },
-      })
-      return response.data.data
-    },
-    enabled: !!from && !!to,
-  })
-}
+
 
 // Mutation: Create forum
 export function useCreateForum() {
@@ -116,7 +107,70 @@ export function useCreateForum() {
     onSuccess: (data) => {
       // Invalidate forum lists
       queryClient.invalidateQueries({ queryKey: forumKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: forumKeys.bySubject(data.id_subject) })
+      if (data.id_subject) {
+        queryClient.invalidateQueries({ queryKey: forumKeys.bySubject(data.id_subject) })
+      }
     },
   })
 }
+
+// Mutation: Like forum
+export function useLikeForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_forum: string) => {
+      const response = await api.post(FORUM_ENDPOINTS.LIKE, { id_forum })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.all })
+    },
+  })
+}
+
+// Mutation: Unlike forum
+export function useUnlikeForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_forum: string) => {
+      const response = await api.delete(FORUM_ENDPOINTS.LIKE, { data: { id_forum } })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.all })
+    },
+  })
+}
+
+// Mutation: Bookmark forum
+export function useBookmarkForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_forum: string) => {
+      const response = await api.post(FORUM_ENDPOINTS.BOOKMARK, { id_forum })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.all })
+    },
+  })
+}
+
+// Mutation: Unbookmark forum
+export function useUnbookmarkForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_forum: string) => {
+      const response = await api.delete(FORUM_ENDPOINTS.BOOKMARK, { data: { id_forum } })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.all })
+    },
+  })
+}
+

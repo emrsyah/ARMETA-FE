@@ -5,6 +5,7 @@ import { Button } from "../ui/button"
 import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from "@/lib/queries/ulasan"
 import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
+import { Badge } from "../ui/badge"
 
 type Props = {
     id: string;
@@ -21,6 +22,8 @@ type Props = {
     isBookmarked?: boolean;
     onReport?: () => void;
     isReply?: boolean;
+    subjectName?: string;
+    type?: 'dosen' | 'matkul'
 }
 
 const ReviewCard = ({
@@ -38,6 +41,8 @@ const ReviewCard = ({
     isBookmarked = false,
     onReport,
     isReply = false,
+    subjectName,
+    type
 }: Props) => {
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
@@ -126,9 +131,14 @@ const ReviewCard = ({
             <CardContent className="flex items-start gap-8">
                 <div className="w-full">
                     {!isReply ? (
-                        <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
-                            <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
-                        </Link>
+                        <div className="flex flex-col gap-2">
+                            {type ? (
+                                <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
+                            ) : null}
+                            <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
+                                <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
+                            </Link>
+                        </div>
                     ) : null}
                     <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
