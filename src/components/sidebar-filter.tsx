@@ -12,10 +12,12 @@ const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
 ];
 
 // Sorting options mapped to API sort values (ulasan only)
+// Sorting options mapped to API sort values (ulasan only)
 const SORTING_OPTIONS: { label: string; value: SortByType }[] = [
   { label: 'Terbaru', value: 'date' },
-  { label: 'Paling banyak dilike', value: 'likes' },
-  { label: 'Paling banyak dibookmark', value: 'bookmarks' },
+  { label: 'Paling banyak dilike', value: 'most_like' },
+  { label: 'Paling banyak dibookmark', value: 'most_bookmark' },
+  { label: 'Populer', value: 'most_popular' },
 ];
 
 type FilterSectionProps<T extends string> = {

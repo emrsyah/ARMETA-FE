@@ -20,6 +20,7 @@ type Props = {
     isLiked?: boolean;
     isBookmarked?: boolean;
     onReport?: () => void;
+    isReply?: boolean;
 }
 
 const ReviewCard = ({
@@ -36,6 +37,7 @@ const ReviewCard = ({
     isLiked = false,
     isBookmarked = false,
     onReport,
+    isReply = false,
 }: Props) => {
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
@@ -122,10 +124,12 @@ const ReviewCard = ({
                 </Button>
             </CardHeader>
             <CardContent className="flex items-start gap-8">
-                <div>
-                    <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
-                        <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
-                    </Link>
+                <div className="w-full">
+                    {!isReply ? (
+                        <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
+                            <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
+                        </Link>
+                    ) : null}
                     <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
                 </div>
                 {files && files.length > 0 && (

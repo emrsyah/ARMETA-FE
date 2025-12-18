@@ -1,7 +1,7 @@
 import ReviewCard from '@/components/card/review-card'
 import { createFileRoute } from '@tanstack/react-router'
 import { useProfile } from '@/lib/queries/user'
-import { useUlasanList, useFilterUlasan, useSortUlasan } from '@/lib/queries/ulasan'
+import { useUlasanList } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 import CreateReviewModal from '@/components/create-review-modal'
@@ -22,29 +22,13 @@ function HomePage() {
   // Calculate date range if filter is active
   const dateRange = search.filter ? getDateRangeFromFilter(search.filter) : null
 
-  // Use different queries based on active filters/sorting
-  const { data: allUlasan, isLoading: isAllLoading } = useUlasanList()
-  const { data: filteredUlasan, isLoading: isFilterLoading } = useFilterUlasan(
-    dateRange?.from ?? '',
-    dateRange?.to ?? ''
-  )
-  const { data: sortedUlasan, isLoading: isSortLoading } = useSortUlasan(
-    search.sortBy ?? 'date',
-    search.order ?? 'desc'
-  )
-
-  // Determine which data to use based on active filters
-  const ulasanList = search.filter
-    ? filteredUlasan
-    : search.sortBy
-      ? sortedUlasan
-      : allUlasan
-
-  const isUlasanLoading = search.filter
-    ? isFilterLoading
-    : search.sortBy
-      ? isSortLoading
-      : isAllLoading
+  // Use unified query with filters/sorting
+  const { data: ulasanList, isLoading: isUlasanLoading } = useUlasanList({
+    from: dateRange?.from,
+    to: dateRange?.to,
+    sortBy: search.sortBy,
+    order: search.order,
+  })
 
   const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
 

@@ -1,5 +1,25 @@
 import { z } from 'zod'
 
+// Reply entity schema (subset of ulasan with user joined)
+export const replySchema = z.object({
+  id_review: z.string().uuid(),
+  body: z.string().nullable(), // Body can be null/empty string in DB? schema says textUlasan mandatory but nullable in DB? Let's assume string. Backend sets it.
+  files: z.array(z.string()).default([]),
+  created_at: z.string().datetime(),
+  user: z.object({
+    id_user: z.string().uuid(),
+    name: z.string(),
+    image: z.string().nullable(),
+  }),
+  total_likes: z.number().default(0),
+  total_bookmarks: z.number().default(0),
+  is_liked: z.boolean().default(false),
+  is_bookmarked: z.boolean().default(false),
+  title: z.string().optional(), // Title might not be selected in replies query
+})
+
+export type Reply = z.infer<typeof replySchema>
+
 // Ulasan (Review) entity schema
 export const ulasanSchema = z.object({
   id_review: z.string().uuid(),
@@ -14,7 +34,8 @@ export const ulasanSchema = z.object({
   total_bookmarks: z.number().default(0),
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
-  reply: z.array(z.string()).default([]),
+  reply: z.array(z.string()).default([]), // This seems to be the old field maybe? Keep it for now.
+  replies: z.array(replySchema).optional(), // New field for actual reply objects
   files: z.array(z.string()).default([]),
   vectorize: z.string().optional(),
   created_at: z.string().datetime(),
@@ -85,6 +106,18 @@ export const sortUlasanSchema = z.object({
 })
 
 export type SortUlasanInput = z.infer<typeof sortUlasanSchema>
+
+// Combined Get All Ulasan Input
+export const getAllUlasanSchema = z.object({
+  page: z.number().int().positive().optional(),
+  limit: z.number().int().positive().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  sortBy: sortByEnum.optional(),
+  order: sortOrderEnum.optional(),
+})
+
+export type GetAllUlasanInput = z.infer<typeof getAllUlasanSchema>
 
 // Like/Bookmark request
 export const ulasanIdSchema = z.object({

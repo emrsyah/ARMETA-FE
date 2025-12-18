@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useUlasanDetail, useUlasanList, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from '@/lib/queries/ulasan'
+import { useUlasanDetail, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import ReviewCard from '@/components/card/review-card'
+import CreateReviewModal from '@/components/create-review-modal'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
   component: UlasanDetailPage,
@@ -29,7 +30,6 @@ export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
 function UlasanDetailPage() {
   const { ulasanId } = Route.useParams()
   const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching } = useUlasanDetail(ulasanId)
-  const { data: ulasanList, isLoading: isRepliesLoading } = useUlasanList()
 
   const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
   const [liked, setLiked] = useState(false)
@@ -54,10 +54,8 @@ function UlasanDetailPage() {
     }
   }, [ulasan, isMutating, isUlasanRefetching])
 
-  // Filter replies to this ulasan
-  const replies = ulasanList?.filter(
-    (item) => item.id_reply === ulasanId
-  )
+  // Replies are now fetched with the ulasan detail
+  const replies = ulasan?.replies || []
 
   const handleLike = async () => {
     if (liked) {
@@ -317,7 +315,7 @@ function UlasanDetailPage() {
         {/* Reply Input */}
         {!openCreateReviewModal && (
           <motion.div
-            layoutId="create-ulasan-reply-input"
+            layoutId="create-review-input"
             onClick={() => setOpenCreateReviewModal(true)}
             className="cursor-pointer"
             transition={{
@@ -351,7 +349,7 @@ function UlasanDetailPage() {
             </h2>
           </div>
 
-          {isRepliesLoading ? (
+          {isUlasanLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i}>
@@ -369,12 +367,14 @@ function UlasanDetailPage() {
           ) : replies && replies.length > 0 ? (
             replies.map((reply) => (
               <ReviewCard
+                isReply
                 key={reply.id_review}
                 id={reply.id_review}
-                userName="User"
-                avatarFallback="U"
-                title={reply.title}
-                content={reply.body}
+                userName={reply.user?.name || "User"}
+                avatarUrl={reply.user?.image || undefined}
+                avatarFallback={reply.user?.name?.charAt(0).toUpperCase() || "U"}
+                title={reply.title || "" /* Title might be empty for replies */}
+                content={reply.body || ""}
                 files={reply.files}
                 commentCount={0}
                 bookmarkCount={reply.total_bookmarks ?? 0}
@@ -398,6 +398,11 @@ function UlasanDetailPage() {
           )}
         </div>
       </div>
+      <CreateReviewModal
+        open={openCreateReviewModal}
+        onOpenChange={setOpenCreateReviewModal}
+        replyToId={ulasanId}
+      />
     </LayoutGroup>
   )
 }

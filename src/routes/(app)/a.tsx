@@ -6,7 +6,7 @@ import SidebarFilter from '@/components/sidebar-filter'
 
 // Filter search params type - shared across child routes
 export type FilterType = 'today' | 'week' | 'month' | 'year'
-export type SortByType = 'date' | 'likes' | 'bookmarks'
+export type SortByType = 'date' | 'most_like' | 'most_bookmark' | 'most_popular'
 export type OrderType = 'asc' | 'desc'
 
 export type FilterSearch = {
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/(app)/a')({
       filter: ['today', 'week', 'month', 'year'].includes(search.filter as string)
         ? (search.filter as FilterType)
         : undefined,
-      sortBy: ['date', 'likes', 'bookmarks'].includes(search.sortBy as string)
+      sortBy: ['date', 'most_like', 'most_bookmark', 'most_popular'].includes(search.sortBy as string)
         ? (search.sortBy as SortByType)
         : undefined,
       order: ['asc', 'desc'].includes(search.order as string)

@@ -9,6 +9,7 @@ import type {
   EditUlasanInput,
   SearchVectorUlasanInput,
   UlasanIdInput,
+  GetAllUlasanInput,
   Like,
   Bookmark,
 } from '../schemas/ulasan.schema'
@@ -16,21 +17,21 @@ import type { ApiResponse } from '../api/types'
 
 export const ulasanKeys = {
   all: ['ulasan'] as const,
-  lists: () => [...ulasanKeys.all, 'list'] as const,
+  lists: (filters?: GetAllUlasanInput) => [...ulasanKeys.all, 'list', filters] as const,
   detail: (id: string) => [...ulasanKeys.all, 'detail', id] as const,
   searchVector: (query: string) => [...ulasanKeys.all, 'search-vector', query] as const,
   searchText: (query: string) => [...ulasanKeys.all, 'search-text', query] as const,
-  filtered: (from: string, to: string) => [...ulasanKeys.all, 'filtered', from, to] as const,
-  sorted: (sortBy: string, order: string) => [...ulasanKeys.all, 'sorted', sortBy, order] as const,
   liked: () => [...ulasanKeys.all, 'liked'] as const,
   bookmarked: () => [...ulasanKeys.all, 'bookmarked'] as const,
 }
 
-export const ulasanListQueryOptions = () =>
+export const ulasanListQueryOptions = (filters?: GetAllUlasanInput) =>
   queryOptions({
-    queryKey: ulasanKeys.lists(),
+    queryKey: ulasanKeys.lists(filters),
     queryFn: async () => {
-      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL)
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL, {
+        params: filters,
+      })
 
       return response.data.data
     },
@@ -66,9 +67,9 @@ export const ulasanDetailQueryOptions = (ulasanId: string) =>
     enabled: !!ulasanId,
   })
 
-// Query: Get all ulasan
-export function useUlasanList() {
-  return useQuery(ulasanListQueryOptions())
+// Query: Get all ulasan (with optional filters/sorting)
+export function useUlasanList(filters?: GetAllUlasanInput) {
+  return useQuery(ulasanListQueryOptions(filters))
 }
 
 // Query: Get liked ulasan
@@ -115,9 +116,15 @@ export function useCreateUlasan() {
       })
       return response.data.data
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate ulasan list to refetch
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.lists() })
+      // Note: We invalidate all lists regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
+
+      // If this was a reply, invalidate the parent ulasan detail to fetch the new reply
+      if (variables.idReply) {
+        queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.idReply) })
+      }
     },
   })
 }
@@ -151,7 +158,7 @@ export function useEditUlasan() {
       // Update the specific ulasan in cache
       queryClient.setQueryData(ulasanKeys.detail(data.id_review), data)
       // Invalidate lists to refetch
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
     },
   })
 }
@@ -177,33 +184,6 @@ export function useSearchTextUlasan(keyword: string) {
       return response.data.data
     },
     enabled: keyword.length > 0,
-  })
-}
-
-// Query: Filter ulasan by date range
-export function useFilterUlasan(from: string, to: string) {
-  return useQuery({
-    queryKey: ulasanKeys.filtered(from, to),
-    queryFn: async () => {
-      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.FILTER, {
-        params: { from, to },
-      })
-      return response.data.data
-    },
-    enabled: !!from && !!to,
-  })
-}
-
-// Query: Sort ulasan
-export function useSortUlasan(sortBy: string = 'date', order: string = 'desc') {
-  return useQuery({
-    queryKey: ulasanKeys.sorted(sortBy, order),
-    queryFn: async () => {
-      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SORT, {
-        params: { sortBy, order },
-      })
-      return response.data.data
-    },
   })
 }
 

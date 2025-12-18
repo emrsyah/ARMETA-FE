@@ -10,7 +10,7 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X } from "lucide-react"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, useEffect } from "react"
 import z from "zod"
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
 import { useCreateUlasan } from "@/lib/queries/ulasan"
@@ -18,28 +18,29 @@ import { useCreateUlasan } from "@/lib/queries/ulasan"
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  replyToId?: string
 }
 
 const extendedCreateUlasanSchema = createUlasanSchema.extend({
-  type: z.enum(['dosen', 'matkul']),
+  type: z.enum(['dosen', 'matkul', 'reply']),
 })
 
 type ExtendedCreateUlasanInput = z.infer<typeof extendedCreateUlasanSchema>
 
-const CreateReviewModal = ({ open, onOpenChange }: Props) => {
+const CreateReviewModal = ({ open, onOpenChange, replyToId }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const { data: lecturers = [] } = useLecturers()
   const { data: subjects = [] } = useSubjects()
   const createUlasanMutation = useCreateUlasan()
 
-  const dosenList = useMemo(() => 
+  const dosenList = useMemo(() =>
     lecturers.map((lecturer) => ({
       value: lecturer.id_lecturer,
       label: lecturer.name,
     })), [lecturers])
 
-  const matkulList = useMemo(() => 
+  const matkulList = useMemo(() =>
     subjects.map((subject) => ({
       value: subject.id_subject,
       label: subject.name,
@@ -48,12 +49,24 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
   const form = useForm<ExtendedCreateUlasanInput>({
     resolver: standardSchemaResolver(extendedCreateUlasanSchema),
     defaultValues: {
-      type: 'dosen',
+      type: replyToId ? 'reply' : 'dosen',
       judulUlasan: '',
       textUlasan: '',
       files: [],
     },
   })
+
+  // Reset form when modal opens/closes or props change
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        type: replyToId ? 'reply' : 'dosen',
+        judulUlasan: '',
+        textUlasan: '',
+        files: [],
+      })
+    }
+  }, [open, replyToId, form])
 
   const files = form.watch('files') || []
   const reviewType = form.watch('type')
@@ -79,6 +92,7 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
         textUlasan: data.textUlasan,
         idDosen: data.type === 'dosen' ? data.idDosen : undefined,
         idMatkul: data.type === 'matkul' ? data.idMatkul : undefined,
+        idReply: data.type === 'reply' ? replyToId : undefined,
         files: data.files,
       })
       form.reset()
@@ -100,157 +114,161 @@ const CreateReviewModal = ({ open, onOpenChange }: Props) => {
             damping: 30,
           }}
         >
-        <DialogHeader className="mb-4">
-          <DialogTitle>Buat Ulasan</DialogTitle>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Review Type Tabs */}
-            <FormField
-              name="type"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <Tabs
-                    value={field.value}
-                    onValueChange={(value) => {
-                      field.onChange(value)
-                      // Clear selection when switching type
-                      form.setValue('idDosen', undefined)
-                      form.setValue('idMatkul', undefined)
-                    }}
-                    className="w-full"
-                  >
-                    <TabsList className="w-full">
-                      <TabsTrigger value="matkul" className="flex-1">
-                        Ulasan Mata Kuliah
-                      </TabsTrigger>
-                      <TabsTrigger value="dosen" className="flex-1">
-                        Ulasan Dosen
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </FormItem>
-              )}
-            />
+          <DialogHeader className="mb-4">
+            <DialogTitle>{replyToId ? 'Buat Balasan' : 'Buat Ulasan'}</DialogTitle>
+          </DialogHeader>
 
-            {/* Select Dosen/Matkul */}
-            <FormItem>
-              <FormLabel>
-                {reviewType === 'dosen' ? 'Pilih Dosen' : 'Pilih Mata Kuliah'}
-              </FormLabel>
-              {reviewType === 'dosen' ? (
-                <Combobox
-                  options={dosenList}
-                  value={form.watch('idDosen')}
-                  onChange={(value) => form.setValue('idDosen', value)}
-                  placeholder="Pilih dosen..."
-                  searchPlaceholder="Cari dosen..."
-                  emptyText="Dosen tidak ditemukan."
-                />
-              ) : (
-                <Combobox
-                  options={matkulList}
-                  value={form.watch('idMatkul')}
-                  onChange={(value) => form.setValue('idMatkul', value)}
-                  placeholder="Pilih mata kuliah..."
-                  searchPlaceholder="Cari mata kuliah..."
-                  emptyText="Mata kuliah tidak ditemukan."
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Review Type Tabs - Hide if replying */}
+              {!replyToId && (
+                <FormField
+                  name="type"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <Tabs
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                          // Clear selection when switching type
+                          form.setValue('idDosen', undefined)
+                          form.setValue('idMatkul', undefined)
+                        }}
+                        className="w-full"
+                      >
+                        <TabsList className="w-full">
+                          <TabsTrigger value="matkul" className="flex-1">
+                            Ulasan Mata Kuliah
+                          </TabsTrigger>
+                          <TabsTrigger value="dosen" className="flex-1">
+                            Ulasan Dosen
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </FormItem>
+                  )}
                 />
               )}
-            </FormItem>
 
-            {/* Title */}
-            <FormField
-              name="judulUlasan"
-              control={form.control}
-              render={({ field }) => (
+              {/* Select Dosen/Matkul - Hide if replying */}
+              {!replyToId && (
                 <FormItem>
-                  <FormLabel>Judul Ulasan</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      placeholder="Masukkan judul ulasan..."
-                      autoFocus 
+                  <FormLabel>
+                    {reviewType === 'dosen' ? 'Pilih Dosen' : 'Pilih Mata Kuliah'}
+                  </FormLabel>
+                  {reviewType === 'dosen' ? (
+                    <Combobox
+                      options={dosenList}
+                      value={form.watch('idDosen')}
+                      onChange={(value) => form.setValue('idDosen', value)}
+                      placeholder="Pilih dosen..."
+                      searchPlaceholder="Cari dosen..."
+                      emptyText="Dosen tidak ditemukan."
                     />
-                  </FormControl>
-                  <FormMessage />
+                  ) : (
+                    <Combobox
+                      options={matkulList}
+                      value={form.watch('idMatkul')}
+                      onChange={(value) => form.setValue('idMatkul', value)}
+                      placeholder="Pilih mata kuliah..."
+                      searchPlaceholder="Cari mata kuliah..."
+                      emptyText="Mata kuliah tidak ditemukan."
+                    />
+                  )}
                 </FormItem>
               )}
-            />
 
-            {/* Review Content */}
-            <FormField
-              name="textUlasan"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Isi Ulasan</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Tulis ulasan Anda di sini..."
-                      className="min-h-[120px] resize-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Title */}
+              <FormField
+                name="judulUlasan"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Judul {replyToId ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={`Masukkan judul ${replyToId ? 'balasan' : 'ulasan'}...`}
+                        autoFocus
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Selected Files */}
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {files.map((file, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm"
-                  >
-                    <span className="truncate max-w-[150px]">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="text-muted-foreground hover:text-foreground"
+              {/* Review Content */}
+              <FormField
+                name="textUlasan"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Isi {replyToId ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={`Tulis ${replyToId ? 'balasan' : 'ulasan'} Anda di sini...`}
+                        className="min-h-[120px] resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Selected Files */}
+              {files.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm"
                     >
-                      <X className="size-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                      <span className="truncate max-w-[150px]">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-3">
-                {/* File Upload */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  title="Lampirkan file"
-                >
-                  <Paperclip className="size-5" />
-                </button>
-              </div>
+              {/* Bottom Actions */}
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-3">
+                  {/* File Upload */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="Lampirkan file"
+                  >
+                    <Paperclip className="size-5" />
+                  </button>
+                </div>
 
-              {/* Submit Buttons */}
-              <div className="flex gap-2">
-                <Button size={'lg'} type="submit" loading={createUlasanMutation.isPending}>
-                  Kirim
-                </Button>
+                {/* Submit Buttons */}
+                <div className="flex gap-2">
+                  <Button size={'lg'} type="submit" loading={createUlasanMutation.isPending}>
+                    Kirim
+                  </Button>
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
         </motion.div>
       </DialogContent>
     </Dialog>
