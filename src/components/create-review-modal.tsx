@@ -93,10 +93,10 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
         toast('Judul dan Ulasan tidak boleh kosong')
         return
       }
-      if (data.type === 'reply' && !replyToId) {
-        toast('Reply ID tidak ditemukan')
-        return
-      }
+      // if (data.type === 'reply' && !replyToId) {
+      //   toast('Reply ID tidak ditemukan')
+      //   return
+      // }
       if ((data.type == 'dosen' || data.type == 'matkul') && (!data.idDosen && !data.idMatkul)) {
         toast('Dosen atau Matkul Wajib Diisi')
         return

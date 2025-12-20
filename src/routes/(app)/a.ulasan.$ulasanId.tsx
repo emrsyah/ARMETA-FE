@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useUlasanDetail, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from '@/lib/queries/ulasan'
+import { useUlasanDetail, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark, useCreateUlasan } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,11 +19,16 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
-import CreateReviewModal from '@/components/create-review-modal'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      focus: search.focus === true || search.focus === 'true'
+    }
+  },
   component: UlasanDetailPage,
 })
 
@@ -31,7 +36,8 @@ function UlasanDetailPage() {
   const { ulasanId } = Route.useParams()
   const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching } = useUlasanDetail(ulasanId)
 
-  const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
+  const [replyText, setReplyText] = useState('')
+  const createUlasanMutation = useCreateUlasan()
   const [liked, setLiked] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
@@ -42,6 +48,14 @@ function UlasanDetailPage() {
   const unlikeMutation = useUnlikeUlasan()
   const bookmarkMutation = useBookmarkUlasan()
   const removeBookmarkMutation = useRemoveBookmark()
+  const { focus } = Route.useSearch()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (focus && !isUlasanLoading && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [focus, isUlasanLoading])
 
   const isMutating = likeMutation.isPending || unlikeMutation.isPending || bookmarkMutation.isPending || removeBookmarkMutation.isPending
 
@@ -98,6 +112,22 @@ function UlasanDetailPage() {
         setBookmarked(false)
         setBookmarkCount((prev) => prev - 1)
       }
+    }
+  }
+
+  const handleSubmitReply = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!replyText.trim() || createUlasanMutation.isPending) return
+
+    try {
+      await createUlasanMutation.mutateAsync({
+        judulUlasan: 'reply',
+        textUlasan: replyText,
+        idReply: ulasanId,
+      })
+      setReplyText('')
+    } catch (error) {
+      console.error('Failed to submit reply:', error)
     }
   }
 
@@ -312,34 +342,41 @@ function UlasanDetailPage() {
           </CardFooter>
         </Card>
 
-        {/* Reply Input */}
-        {!openCreateReviewModal && (
-          <motion.div
-            layoutId="create-review-input"
-            onClick={() => setOpenCreateReviewModal(true)}
-            className="cursor-pointer"
-            transition={{
-              type: 'spring',
-              stiffness: 350,
-              damping: 30,
-            }}
-          >
-            <Card className="overflow-hidden hover:border-primary/50 transition-colors">
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <Input
-                    readOnly
-                    placeholder="Tulis balasan untuk ulasan ini..."
-                    className="cursor-pointer flex-1 bg-gray-50"
-                  />
-                  <Button size="icon" variant="ghost">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+        {/* Reply Input Form */}
+        <motion.div
+          layoutId="create-review-input"
+          transition={{
+            type: 'spring',
+            stiffness: 350,
+            damping: 30,
+          }}
+        >
+          <Card className="overflow-hidden border-primary/20 shadow-sm">
+            <CardContent className="py-4">
+              <form onSubmit={handleSubmitReply} className="flex items-center gap-3">
+                <Input
+                  ref={inputRef}
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Tulis balasan untuk ulasan ini..."
+                  className="flex-1 bg-gray-50 focus-visible:ring-primary/20 border-gray-200"
+                  disabled={createUlasanMutation.isPending}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  className={cn(
+                    "shrink-0 transition-all",
+                    replyText.trim() ? "bg-primary text-white" : "bg-gray-100 text-gray-400"
+                  )}
+                  disabled={!replyText.trim() || createUlasanMutation.isPending}
+                >
+                  <Send className={cn("h-4 w-4", createUlasanMutation.isPending && "animate-pulse")} />
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Replies Section */}
         <div className="space-y-4">
@@ -398,11 +435,6 @@ function UlasanDetailPage() {
           )}
         </div>
       </div>
-      <CreateReviewModal
-        open={openCreateReviewModal}
-        onOpenChange={setOpenCreateReviewModal}
-        replyToId={ulasanId}
-      />
     </LayoutGroup>
   )
 }

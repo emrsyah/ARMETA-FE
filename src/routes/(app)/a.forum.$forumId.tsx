@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useForumDetail, useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from '@/lib/queries/forum'
+import { useCreateUlasan } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,12 +18,16 @@ import {
   Share,
   Send,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
-import CreateReviewModal from '@/components/create-review-modal'
 import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      focus: search.focus === true || search.focus === 'true'
+    }
+  },
   component: ForumDetailPage,
 })
 
@@ -41,7 +46,8 @@ function ForumDetailPage() {
   const { forumId } = Route.useParams()
   const { data: forum, isLoading: isForumLoading } = useForumDetail(forumId)
 
-  const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
+  const [replyText, setReplyText] = useState('')
+  const createUlasanMutation = useCreateUlasan()
 
   // Local state for optimistic updates
   const [localIsLiked, setLocalIsLiked] = useState(false)
@@ -58,6 +64,15 @@ function ForumDetailPage() {
       setLocalBookmarkCount(forum.total_bookmark)
     }
   }, [forum])
+
+  const { focus } = Route.useSearch()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (focus && !isForumLoading && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [focus, isForumLoading])
 
   // Mutations
   const likeMutation = useLikeForum()
@@ -106,6 +121,22 @@ function ForumDetailPage() {
           setLocalBookmarkCount(prev => Math.max(0, prev - 1))
         }
       })
+    }
+  }
+
+  const handleSubmitReply = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!replyText.trim() || createUlasanMutation.isPending) return
+
+    try {
+      await createUlasanMutation.mutateAsync({
+        judulUlasan: 'reply',
+        textUlasan: replyText,
+        idForum: forumId,
+      })
+      setReplyText('')
+    } catch (error) {
+      console.error('Failed to submit reply:', error)
     }
   }
 
@@ -203,34 +234,41 @@ function ForumDetailPage() {
           </CardFooter>
         </Card>
 
-        {/* Reply Input */}
-        {!openCreateReviewModal && (
-          <motion.div
-            layoutId="create-forum-reply-input"
-            onClick={() => setOpenCreateReviewModal(true)}
-            className="cursor-pointer"
-            transition={{
-              type: 'spring',
-              stiffness: 350,
-              damping: 30,
-            }}
-          >
-            <Card className="overflow-hidden hover:border-primary/50 transition-colors">
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <Input
-                    readOnly
-                    placeholder="Tulis balasan untuk diskusi ini..."
-                    className="cursor-pointer flex-1 bg-gray-50"
-                  />
-                  <Button size="icon" variant="ghost">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+        {/* Reply Input Form */}
+        <motion.div
+          layoutId="create-forum-reply-input"
+          transition={{
+            type: 'spring',
+            stiffness: 350,
+            damping: 30,
+          }}
+        >
+          <Card className="overflow-hidden border-primary/20 shadow-sm">
+            <CardContent className="py-4">
+              <form onSubmit={handleSubmitReply} className="flex items-center gap-3">
+                <Input
+                  ref={inputRef}
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Tulis balasan untuk diskusi ini..."
+                  className="flex-1 bg-gray-50 focus-visible:ring-primary/20 border-gray-200"
+                  disabled={createUlasanMutation.isPending}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  className={cn(
+                    "shrink-0 transition-all",
+                    replyText.trim() ? "bg-primary text-white" : "bg-gray-100 text-gray-400"
+                  )}
+                  disabled={!replyText.trim() || createUlasanMutation.isPending}
+                >
+                  <Send className={cn("h-4 w-4", createUlasanMutation.isPending && "animate-pulse")} />
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Replies Section */}
         <div className="space-y-4">
@@ -272,11 +310,6 @@ function ForumDetailPage() {
           )}
         </div>
       </div>
-      <CreateReviewModal
-        open={openCreateReviewModal}
-        onOpenChange={setOpenCreateReviewModal}
-        forumId={forumId}
-      />
     </LayoutGroup>
   )
 }

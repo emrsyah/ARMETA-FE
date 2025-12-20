@@ -145,7 +145,7 @@ const ForumCard = ({
                 </Button>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-                <Link to="/a/forum/$forumId" params={{ forumId: id_forum }}>
+                <Link to="/a/forum/$forumId" params={{ forumId: id_forum }} search={{ focus: false }}>
                     <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">{title}</h3>
                 </Link>
                 {description && (
@@ -167,10 +167,12 @@ const ForumCard = ({
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Button variant="ghost">
-                        <MessageCircle />
-                        <span>{total_reply}</span>
-                    </Button>
+                    <Link to="/a/forum/$forumId" params={{ forumId: id_forum }} search={{ focus: true }}>
+                        <Button variant="ghost">
+                            <MessageCircle />
+                            <span>{total_reply}</span>
+                        </Button>
+                    </Link>
                     <Button variant="ghost" onClick={handleBookmark}>
                         <Bookmark className={cn(localIsBookmarked && "fill-current text-yellow-500")} />
                         <span>{localBookmarkCount}</span>

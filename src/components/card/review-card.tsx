@@ -135,12 +135,12 @@ const ReviewCard = ({
                             {type ? (
                                 <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
                             ) : null}
-                            <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }}>
+                            <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: false }}>
                                 <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
                             </Link>
                         </div>
                     ) : null}
-                    <p className="text-sm mt-2 text-gray-500 leading-relaxed text-justify line-clamp-5">{content}</p>
+                    <p className={`  leading-relaxed text-justify line-clamp-5 ${isReply ? 'text-base text-gray-950' : 'text-sm text-gray-500'}`}>{content}</p>
                 </div>
                 {files && files.length > 0 && (
                     <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
@@ -199,19 +199,25 @@ const ReviewCard = ({
                 )}
             </CardContent>
             <CardFooter className="flex items-center justify-between">
-                <Button variant="ghost">
-                    <MessageCircle />
-                    <span>{commentCount}</span>
-                </Button>
-                <Button
-                    variant="ghost"
-                    onClick={handleBookmark}
-                    disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
-                    className={bookmarked ? 'text-primary' : ''}
-                >
-                    <Bookmark className={bookmarked ? 'fill-current' : ''} />
-                    <span>{currentBookmarkCount}</span>
-                </Button>
+                {!isReply ? (
+                    <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: true }}>
+                        <Button variant="ghost">
+                            <MessageCircle />
+                            <span>{commentCount}</span>
+                        </Button>
+                    </Link>
+                ) : null}
+                {!isReply ? (
+                    <Button
+                        variant="ghost"
+                        onClick={handleBookmark}
+                        disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
+                        className={bookmarked ? 'text-primary' : ''}
+                    >
+                        <Bookmark className={bookmarked ? 'fill-current' : ''} />
+                        <span>{currentBookmarkCount}</span>
+                    </Button>
+                ) : null}
                 <Button
                     variant="ghost"
                     onClick={handleLike}
