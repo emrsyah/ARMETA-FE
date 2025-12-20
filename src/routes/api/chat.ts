@@ -1,10 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { convertToModelMessages, stepCountIs, streamText, UIMessage } from 'ai'
-import { google } from '@ai-sdk/google'
-
-import { webSearch } from '@exalabs/ai-sdk';
-import { agent } from '@/lib/agent/agent';
+import { convertToModelMessages, UIMessage } from 'ai'
+import { createAgent } from '@/lib/agent/agent';
 
 
 const COMMON_SYSTEM_PROMPT = `
@@ -31,6 +28,10 @@ export const Route = createFileRoute('/api/chat')({
       POST: async ({ request }) => {
         // Parse the array of UIMessage objects from the request body
         const { messages }: { messages: UIMessage[] } = await request.json()
+        const authHeader = request.headers.get('Authorization')
+
+        // Create a request-specific agent with auth
+        const agent = createAgent(authHeader ?? undefined)
 
         // Stream a response from the Gemini model
         const result = agent.stream({

@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk-tools/devtools": "^1.2.0",
     "@ai-sdk/google": "^2.0.45",
     "@ai-sdk/react": "^2.0.112",
     "@exalabs/ai-sdk": "^1.0.5",
