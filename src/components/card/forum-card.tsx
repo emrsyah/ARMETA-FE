@@ -1,4 +1,4 @@
-import { Flag, MessageCircle, Bookmark, Heart } from "lucide-react"
+import { Flag, MessageCircle, Bookmark, Heart, Ghost } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -19,6 +19,7 @@ export type ForumReply = {
 
 export type ForumCardProps = Forum & {
     replies?: ForumReply[]
+    isAnonymous?: boolean;
 }
 
 // Helper to format date
@@ -54,6 +55,7 @@ const ForumCard = ({
     total_reply,
     is_liked,
     is_bookmarked,
+    isAnonymous = false,
     replies = [],
 }: ForumCardProps) => {
     // Local state for optimistic updates
@@ -197,11 +199,12 @@ const ForumCard = ({
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-3 cursor-pointer group">
                         <Avatar>
-                            <AvatarImage src={user.image ?? undefined} />
-                            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                            <AvatarImage src={isAnonymous ? undefined : user.image ?? undefined} />
+                            <AvatarFallback>{isAnonymous ? "?" : getInitials(user.name)}</AvatarFallback>
                         </Avatar>
-                        <span className="transition-all font-semibold group-hover:underline">
-                            {user.name ?? 'Anonymous'}
+                        <span className="text-sm font-semibold hover:underline flex items-center gap-1.5 transition-all">
+                            {isAnonymous ? "Anonim" : user.name ?? 'Anonymous'}
+                            {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
                         </span>
                     </div>
                     <p className="text-sm text-muted-foreground ">{formatDate(created_at)}</p>

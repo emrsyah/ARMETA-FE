@@ -5,7 +5,7 @@ import { CreateForumInput, createForumSchema } from "@/lib/schemas"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
-import { Paperclip, X } from "lucide-react"
+import { Paperclip, X, Ghost } from "lucide-react"
 import { useMemo, useRef } from "react"
 import { Textarea } from "./ui/textarea"
 import { Input } from "./ui/input"
@@ -13,6 +13,7 @@ import { Combobox } from "./ui/combobox"
 import { useSubjects } from "@/lib/queries/lecturer-subject"
 import { useCreateForum } from "@/lib/queries/forum"
 import { toast } from "sonner"
+import { Switch } from "./ui/switch"
 
 type Props = {
   open: boolean
@@ -38,6 +39,7 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
       description: '',
       id_subject: '',
       files: [],
+      isAnonymous: false,
     },
   })
 
@@ -68,6 +70,7 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
         description: data.description,
         id_subject: data.id_subject,
         files: data.files,
+        isAnonymous: data.isAnonymous,
       })
       form.reset()
       onOpenChange(false)
@@ -193,6 +196,27 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
                   >
                     <Paperclip className="size-5" />
                   </button>
+
+                  <FormField
+                    control={form.control}
+                    name="isAnonymous"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0 text-muted-foreground">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-1.5 leading-none">
+                          <FormLabel className="text-sm font-medium cursor-pointer flex items-center gap-1">
+                            <Ghost className="size-3.5" />
+                            Anonim
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Submit Button */}

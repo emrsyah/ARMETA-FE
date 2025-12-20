@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   Send,
+  Ghost,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
@@ -201,13 +202,16 @@ function ForumDetailPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={forum?.user?.image ?? undefined} />
+                  <AvatarImage src={forum?.is_anonymous ? undefined : forum?.user?.image ?? undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {getInitials(forum?.user?.name)}
+                    {forum?.is_anonymous ? "?" : getInitials(forum?.user?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">{forum?.user?.name ?? 'Anonymous'}</p>
+                  <p className="font-medium text-sm flex items-center gap-1.5">
+                    {forum?.is_anonymous ? "Anonim" : forum?.user?.name ?? 'Anonymous'}
+                    {forum?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {forum?.created_at
                       ? new Date(forum.created_at).toLocaleDateString('id-ID', {
@@ -297,6 +301,7 @@ function ForumDetailPage() {
                 userName={reply.user?.name ?? 'Anonymous'}
                 avatarUrl={reply.user?.image ?? undefined}
                 avatarFallback={getInitials(reply.user?.name)}
+                isAnonymous={reply.is_anonymous}
                 title={reply.title ?? ''}
                 content={reply.body ?? ''}
                 files={reply.files ?? []}

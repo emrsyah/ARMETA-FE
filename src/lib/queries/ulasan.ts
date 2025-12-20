@@ -102,6 +102,7 @@ export function useCreateUlasan() {
       if (data.idDosen) formData.append('idDosen', data.idDosen)
       if (data.idReply) formData.append('idReply', data.idReply)
       if (data.idForum) formData.append('idForum', data.idForum)
+      if (data.isAnonymous) formData.append('isAnonymous', String(data.isAnonymous))
 
       if (data.files) {
         data.files.forEach((file) => {
@@ -143,8 +144,8 @@ export function useEditUlasan() {
       const formData = new FormData()
 
       formData.append('id_review', data.id_review)
-      if (data.title) formData.append('title', data.title)
       if (data.body) formData.append('body', data.body)
+      if (data.isAnonymous) formData.append('isAnonymous', String(data.isAnonymous))
 
       if (data.files) {
         data.files.forEach((file) => {

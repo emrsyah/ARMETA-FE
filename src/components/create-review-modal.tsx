@@ -9,12 +9,13 @@ import { createUlasanSchema } from "@/lib/schemas"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
-import { Paperclip, X } from "lucide-react"
+import { Paperclip, X, Ghost } from "lucide-react"
 import { useMemo, useRef, useEffect } from "react"
 import z from "zod"
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
 import { useCreateUlasan } from "@/lib/queries/ulasan"
 import { toast } from "sonner"
+import { Switch } from "./ui/switch"
 
 type Props = {
   open: boolean
@@ -55,6 +56,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
       judulUlasan: '',
       textUlasan: '',
       files: [],
+      isAnonymous: false,
     },
   })
 
@@ -66,6 +68,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
         judulUlasan: '',
         textUlasan: '',
         files: [],
+        isAnonymous: false,
       })
     }
   }, [open, replyToId, forumId, form])
@@ -93,12 +96,8 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
         toast('Judul dan Ulasan tidak boleh kosong')
         return
       }
-      // if (data.type === 'reply' && !replyToId) {
-      //   toast('Reply ID tidak ditemukan')
-      //   return
-      // }
       if ((data.type == 'dosen' || data.type == 'matkul') && (!data.idDosen && !data.idMatkul)) {
-        toast('Dosen atau Matkul Wajib Diisi')
+        toast('Dosen atau Mata Kuliah Wajib Diisi')
         return
       }
       await createUlasanMutation.mutateAsync({
@@ -109,6 +108,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
         idReply: data.type === 'reply' ? replyToId : undefined,
         idForum: forumId,
         files: data.files,
+        isAnonymous: data.isAnonymous,
       })
       form.reset()
       onOpenChange(false)
@@ -273,6 +273,27 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                   >
                     <Paperclip className="size-5" />
                   </button>
+
+                  <FormField
+                    control={form.control}
+                    name="isAnonymous"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0 text-muted-foreground">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-1.5 leading-none">
+                          <FormLabel className="text-sm font-medium cursor-pointer flex items-center gap-1">
+                            <Ghost className="size-3.5" />
+                            Anonim
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Submit Buttons */}

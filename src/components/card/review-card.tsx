@@ -1,4 +1,4 @@
-import { Bookmark, Flag, Heart, MessageCircle, FileText } from "lucide-react"
+import { Bookmark, Flag, Heart, MessageCircle, FileText, Ghost } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
@@ -25,7 +25,8 @@ type Props = {
     isBookmarked?: boolean;
     isReply?: boolean;
     subjectName?: string;
-    type?: 'dosen' | 'matkul'
+    type?: 'dosen' | 'matkul';
+    isAnonymous?: boolean;
 }
 
 const ReviewCard = ({
@@ -43,7 +44,8 @@ const ReviewCard = ({
     isBookmarked = false,
     isReply = false,
     subjectName,
-    type
+    type,
+    isAnonymous = false,
 }: Props) => {
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
@@ -119,11 +121,12 @@ const ReviewCard = ({
             <CardHeader className="flex items-center justify-between w-full">
                 <CardTitle className="flex items-center gap-3 cursor-pointer group">
                     <Avatar>
-                        <AvatarImage src={avatarUrl} />
-                        <AvatarFallback>{avatarFallback}</AvatarFallback>
+                        <AvatarImage src={isAnonymous ? undefined : avatarUrl} />
+                        <AvatarFallback>{isAnonymous ? "?" : avatarFallback}</AvatarFallback>
                     </Avatar>
-                    <span className="transition-all group-hover:underline">
-                        {userName}
+                    <span className="transition-all group-hover:underline flex items-center gap-1.5">
+                        {isAnonymous ? "Anonim" : userName}
+                        {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
                     </span>
                 </CardTitle>
                 <div className="flex items-center gap-2">

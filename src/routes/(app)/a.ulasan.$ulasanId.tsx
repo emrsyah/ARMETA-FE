@@ -17,6 +17,7 @@ import {
   ImageIcon,
   Calendar,
   FileText,
+  Ghost,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
@@ -210,13 +211,16 @@ function UlasanDetailPage() {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={ulasan?.user?.image || ""} />
+                  <AvatarImage src={ulasan?.is_anonymous ? undefined : ulasan?.user?.image || ""} />
                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
-                    {ulasan?.user?.name?.charAt(0).toUpperCase()}
+                    {ulasan?.is_anonymous ? "?" : ulasan?.user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold">{ulasan?.user?.name}</p>
+                  <p className="font-semibold flex items-center gap-1.5">
+                    {ulasan?.is_anonymous ? "Anonim" : ulasan?.user?.name}
+                    {ulasan?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                  </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>
@@ -429,6 +433,7 @@ function UlasanDetailPage() {
                 likeCount={reply.total_likes ?? 0}
                 isLiked={!!reply.is_liked}
                 isBookmarked={!!reply.is_bookmarked}
+                isAnonymous={reply.is_anonymous}
               />
             ))
           ) : (

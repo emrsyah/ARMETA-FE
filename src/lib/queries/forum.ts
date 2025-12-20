@@ -95,6 +95,7 @@ export function useCreateForum() {
       formData.append('title', data.title)
       formData.append('id_subject', data.id_subject)
       if (data.description) formData.append('description', data.description)
+      if (data.isAnonymous) formData.append('isAnonymous', String(data.isAnonymous))
       if (data.files) {
         data.files.forEach((file) => formData.append('files', file))
       }

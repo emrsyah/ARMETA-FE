@@ -17,6 +17,7 @@ export const replySchema = z.object({
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
   title: z.string().optional(), // Title might not be selected in replies query
+  is_anonymous: z.boolean().default(false),
 })
 
 export type Reply = z.infer<typeof replySchema>
@@ -48,6 +49,7 @@ export const ulasanSchema = z.object({
     email: z.string().email().optional(),
     image: z.string().nullable(),
   }).optional(),
+  is_anonymous: z.boolean().default(false),
 })
 
 export type Ulasan = z.infer<typeof ulasanSchema>
@@ -61,6 +63,7 @@ export const createUlasanSchema = z.object({
   idReply: z.string().uuid().optional(),
   idForum: z.string().uuid().optional(),
   files: z.array(z.instanceof(File)).optional(),
+  isAnonymous: z.boolean().optional(),
 })
 
 export type CreateUlasanInput = z.infer<typeof createUlasanSchema>
@@ -71,6 +74,7 @@ export const editUlasanSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   body: z.string().min(1, 'Content is required').optional(),
   files: z.array(z.instanceof(File)).optional(),
+  isAnonymous: z.boolean().optional(),
 })
 
 export type EditUlasanInput = z.infer<typeof editUlasanSchema>

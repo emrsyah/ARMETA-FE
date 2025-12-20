@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // User schema for forum author
 export const forumUserSchema = z.object({
-  id_user: z.string().uuid(),
+  id_user: z.string().uuid().nullable(),
   name: z.string().nullable(),
   image: z.string().nullable(),
 })
@@ -12,7 +12,7 @@ export type ForumUser = z.infer<typeof forumUserSchema>
 // Forum entity schema (aligned with backend response)
 export const forumSchema = z.object({
   id_forum: z.string().uuid(),
-  id_user: z.string().uuid(),
+  id_user: z.string().uuid().nullable(),
   id_subject: z.string().uuid().nullable(),
   subject_name: z.string().nullable().optional(),
   title: z.string(),
@@ -35,6 +35,7 @@ export const forumSchema = z.object({
   total_reply: z.number().default(0),
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
+  is_anonymous: z.boolean().default(false),
 })
 
 export type Forum = z.infer<typeof forumSchema>
@@ -61,6 +62,7 @@ export const forumReviewSchema = z.object({
   total_reply: z.number().default(0),
   is_liked: z.boolean().default(false),
   is_bookmarked: z.boolean().default(false),
+  is_anonymous: z.boolean().default(false),
 })
 
 export type ForumReview = z.infer<typeof forumReviewSchema>
@@ -78,6 +80,7 @@ export const createForumSchema = z.object({
   description: z.string().optional(),
   id_subject: z.string().uuid('Valid subject ID is required'),
   files: z.array(z.instanceof(File)).optional(),
+  isAnonymous: z.boolean().optional(),
 })
 
 export type CreateForumInput = z.infer<typeof createForumSchema>
@@ -153,4 +156,3 @@ export const forumListResponseSchema = z.object({
 export type ForumResponse = z.infer<typeof forumResponseSchema>
 export type ForumDetailResponse = z.infer<typeof forumDetailResponseSchema>
 export type ForumListResponse = z.infer<typeof forumListResponseSchema>
-
