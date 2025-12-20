@@ -4,6 +4,7 @@ import { convertToModelMessages, stepCountIs, streamText, UIMessage } from 'ai'
 import { google } from '@ai-sdk/google'
 
 import { webSearch } from '@exalabs/ai-sdk';
+import { agent } from '@/lib/agent/agent';
 
 
 const COMMON_SYSTEM_PROMPT = `
@@ -32,15 +33,9 @@ export const Route = createFileRoute('/api/chat')({
         const { messages }: { messages: UIMessage[] } = await request.json()
 
         // Stream a response from the Gemini model
-        const result = streamText({
-          model: google('gemini-2.5-flash-preview-09-2025'),
+        const result = agent.stream({
           system: `${COMMON_SYSTEM_PROMPT}`,
           messages: convertToModelMessages(messages),
-          tools: {
-            webSearch: webSearch(),
-          },
-          stopWhen: stepCountIs(3),
-          toolChoice: 'auto',
         })
 
         // The AI SDK offers a helper to turn the stream into a proper Response
