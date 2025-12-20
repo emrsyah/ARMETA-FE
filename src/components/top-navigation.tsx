@@ -1,5 +1,4 @@
-
-import { useId } from 'react'
+import { useId, useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, LogOut } from 'lucide-react'
@@ -17,6 +16,7 @@ import {
 export function TopNavigation() {
   const id = useId()
   const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { data: user, isLoading } = useProfile()
   const logout = useLogout()
@@ -29,6 +29,26 @@ export function TopNavigation() {
     })
   }
 
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate({ to: '/a/search' as any, search: { q: searchQuery } as any })
+    }
+  }
+
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       <div className="ml-auto flex items-center space-x-2 w-full justify-between">
@@ -37,9 +57,13 @@ export function TopNavigation() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               id={id}
+              ref={inputRef}
               type="search"
               placeholder="Cari..."
               className="w-full pl-8 pr-11 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none [&::-webkit-search-results-button]:appearance-none [&::-webkit-search-results-decoration]:appearance-none peer"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
             />
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center pr-3 peer-disabled:opacity-50">
               <kbd className="text-muted-foreground bg-accent inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium">
