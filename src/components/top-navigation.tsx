@@ -1,7 +1,7 @@
 import { useId, useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, LogOut } from 'lucide-react'
+import { Search, LogOut, User } from 'lucide-react'
 import { useProfile, useLogout } from '@/lib/queries'
 import { useNavigate } from '@tanstack/react-router'
 import { Skeleton } from './ui/skeleton'
@@ -87,6 +87,10 @@ export function TopNavigation() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate({ to: '/a/profile' as any })}>
+              <User className="mr-2 h-4 w-4" />
+              Profil
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               Logout

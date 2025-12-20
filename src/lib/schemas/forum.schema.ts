@@ -118,6 +118,7 @@ export const getAllForumSchema = z.object({
   to: z.string().optional(), // ISO date format
   sortBy: forumSortByEnum.optional(),
   order: forumSortOrderEnum.optional(),
+  id_user: z.string().uuid().optional(),
 })
 
 export type GetAllForumInput = z.infer<typeof getAllForumSchema>
