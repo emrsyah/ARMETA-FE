@@ -1,4 +1,4 @@
-import { Flag, MessageCircle, Bookmark, Heart, Share } from "lucide-react"
+import { Flag, MessageCircle, Bookmark, Heart } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -6,6 +6,7 @@ import { Separator } from "../ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Link } from "@tanstack/react-router"
 import { cn } from "@/lib/utils"
+import { ShareButton } from "../share-button"
 import type { Forum } from "@/lib/schemas/forum.schema"
 import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from "@/lib/queries/forum"
 import { useState, useEffect } from "react"
@@ -181,10 +182,7 @@ const ForumCard = ({
                         <Heart className={cn(localIsLiked && "fill-current text-red-500")} />
                         <span>{localLikeCount}</span>
                     </Button>
-                    <Button variant="ghost">
-                        <Share />
-                        <span>Bagikan</span>
-                    </Button>
+                    <ShareButton url={`${window.location.origin}/a/forum/${id_forum}`} />
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-3 cursor-pointer group">

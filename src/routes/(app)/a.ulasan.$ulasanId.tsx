@@ -13,7 +13,6 @@ import {
   Flag,
   Heart,
   MessageCircle,
-  Share,
   Send,
   ImageIcon,
   Calendar,
@@ -22,6 +21,7 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
+import { ShareButton } from '@/components/share-button'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -334,10 +334,11 @@ function UlasanDetailPage() {
                 <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
                 <span>{likeCount}</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2 ml-auto">
-                <Share className="h-4 w-4" />
-                <span>Bagikan</span>
-              </Button>
+              <ShareButton
+                url={`${window.location.origin}/a/ulasan/${ulasanId}`}
+                size="sm"
+                className="gap-2 ml-auto"
+              />
             </div>
           </CardFooter>
         </Card>

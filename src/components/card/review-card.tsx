@@ -1,4 +1,4 @@
-import { Bookmark, Flag, Heart, MessageCircle, Share, FileText } from "lucide-react"
+import { Bookmark, Flag, Heart, MessageCircle, FileText } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
@@ -6,6 +6,7 @@ import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } 
 import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { Badge } from "../ui/badge"
+import { ShareButton } from "../share-button"
 
 type Props = {
     id: string;
@@ -227,10 +228,7 @@ const ReviewCard = ({
                     <Heart className={liked ? 'fill-current' : ''} />
                     <span>{currentLikeCount}</span>
                 </Button>
-                <Button variant="ghost">
-                    <Share />
-                    <span>Bagikan</span>
-                </Button>
+                <ShareButton url={`${window.location.origin}/a/ulasan/${id}`} />
             </CardFooter>
         </Card>
     )

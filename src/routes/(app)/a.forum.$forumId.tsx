@@ -15,12 +15,12 @@ import {
   Flag,
   Heart,
   MessageCircle,
-  Share,
   Send,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
+import { ShareButton } from '@/components/share-button'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -226,10 +226,11 @@ function ForumDetailPage() {
                 <Heart className={cn("h-4 w-4", localIsLiked && "fill-current text-red-500")} />
                 <span>{localLikeCount} Suka</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2 ml-auto">
-                <Share className="h-4 w-4" />
-                <span>Bagikan</span>
-              </Button>
+              <ShareButton
+                url={`${window.location.origin}/a/forum/${forumId}`}
+                size="sm"
+                className="gap-2 ml-auto"
+              />
             </div>
           </CardFooter>
         </Card>
