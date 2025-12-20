@@ -7,6 +7,8 @@ import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { Badge } from "../ui/badge"
 import { ShareButton } from "../share-button"
+import { ReportDialog } from "../report-dialog"
+import { cn } from "@/lib/utils"
 
 type Props = {
     id: string;
@@ -21,7 +23,6 @@ type Props = {
     likeCount: number;
     isLiked?: boolean;
     isBookmarked?: boolean;
-    onReport?: () => void;
     isReply?: boolean;
     subjectName?: string;
     type?: 'dosen' | 'matkul'
@@ -40,7 +41,6 @@ const ReviewCard = ({
     likeCount,
     isLiked = false,
     isBookmarked = false,
-    onReport,
     isReply = false,
     subjectName,
     type
@@ -49,6 +49,7 @@ const ReviewCard = ({
     const [bookmarked, setBookmarked] = useState(isBookmarked)
     const [currentLikeCount, setCurrentLikeCount] = useState(likeCount)
     const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
+    const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
 
     useEffect(() => {
         setLiked(isLiked)
@@ -125,9 +126,17 @@ const ReviewCard = ({
                         {userName}
                     </span>
                 </CardTitle>
-                <Button variant="ghost" size="icon" onClick={onReport}>
-                    <Flag />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
+                        <Flag className="h-4 w-4" />
+                    </Button>
+                    <ReportDialog
+                        isOpen={isReportDialogOpen}
+                        onClose={() => setIsReportDialogOpen(false)}
+                        reviewId={id}
+                        title="Laporkan Ulasan"
+                    />
+                </div>
             </CardHeader>
             <CardContent className="flex items-start gap-8">
                 <div className="w-full">
@@ -203,7 +212,7 @@ const ReviewCard = ({
                 {!isReply ? (
                     <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: true }}>
                         <Button variant="ghost">
-                            <MessageCircle />
+                            <MessageCircle className="h-4 w-4" />
                             <span>{commentCount}</span>
                         </Button>
                     </Link>
@@ -215,7 +224,7 @@ const ReviewCard = ({
                         disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
                         className={bookmarked ? 'text-primary' : ''}
                     >
-                        <Bookmark className={bookmarked ? 'fill-current' : ''} />
+                        <Bookmark className={cn("h-4 w-4", bookmarked && 'fill-current')} />
                         <span>{currentBookmarkCount}</span>
                     </Button>
                 ) : null}
@@ -225,7 +234,7 @@ const ReviewCard = ({
                     disabled={likeMutation.isPending || unlikeMutation.isPending}
                     className={liked ? 'text-red-500' : ''}
                 >
-                    <Heart className={liked ? 'fill-current' : ''} />
+                    <Heart className={cn("h-4 w-4", liked && 'fill-current')} />
                     <span>{currentLikeCount}</span>
                 </Button>
                 <ShareButton url={`${window.location.origin}/a/ulasan/${id}`} />

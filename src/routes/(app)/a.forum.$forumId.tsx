@@ -21,6 +21,7 @@ import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
+import { ReportDialog } from '@/components/report-dialog'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -54,6 +55,7 @@ function ForumDetailPage() {
   const [localLikeCount, setLocalLikeCount] = useState(0)
   const [localIsBookmarked, setLocalIsBookmarked] = useState(false)
   const [localBookmarkCount, setLocalBookmarkCount] = useState(0)
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
 
   // Sync with forum data when it changes
   useEffect(() => {
@@ -171,9 +173,17 @@ function ForumDetailPage() {
                   {forum?.title || 'Forum Title'}
                 </h1>
               </div>
-              <Button variant="ghost" size="icon">
-                <Flag className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
+                  <Flag className="h-4 w-4" />
+                </Button>
+                <ReportDialog
+                  isOpen={isReportDialogOpen}
+                  onClose={() => setIsReportDialogOpen(false)}
+                  forumId={forumId}
+                  title="Laporkan Forum"
+                />
+              </div>
             </div>
           </CardHeader>
 

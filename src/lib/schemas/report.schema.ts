@@ -32,6 +32,7 @@ export const reportSchema = z.object({
   id_user: z.string().uuid(),
   id_review: z.string().uuid().nullable(),
   id_lecturer: z.string().uuid().nullable(),
+  id_forum: z.string().uuid().nullable(),
   type: reportTypeEnum,
   body: z.string().nullable(),
   status: reportStatusEnum,
@@ -46,11 +47,12 @@ export const createReportSchema = z
   .object({
     id_review: z.string().uuid().optional(),
     id_lecturer: z.string().uuid().optional(),
+    id_forum: z.string().uuid().optional(),
     type: reportTypeEnum,
     body: z.string().optional(),
   })
-  .refine((data) => data.id_review || data.id_lecturer, {
-    message: 'Either id_review or id_lecturer must be provided',
+  .refine((data) => data.id_review || data.id_lecturer || data.id_forum, {
+    message: 'Either id_review, id_lecturer or id_forum must be provided',
   })
 
 export type CreateReportInput = z.infer<typeof createReportSchema>

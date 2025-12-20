@@ -10,6 +10,7 @@ import { ShareButton } from "../share-button"
 import type { Forum } from "@/lib/schemas/forum.schema"
 import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from "@/lib/queries/forum"
 import { useState, useEffect } from "react"
+import { ReportDialog } from "../report-dialog"
 
 export type ForumReply = {
     authorName: string
@@ -60,6 +61,7 @@ const ForumCard = ({
     const [localLikeCount, setLocalLikeCount] = useState(total_like)
     const [localIsBookmarked, setLocalIsBookmarked] = useState(is_bookmarked)
     const [localBookmarkCount, setLocalBookmarkCount] = useState(total_bookmark)
+    const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
 
     // Sync with props when they change (e.g., from refetch)
     useEffect(() => {
@@ -141,9 +143,17 @@ const ForumCard = ({
                         <Badge variant={'secondary'}>{subject_name}</Badge>
                     )}
                 </div>
-                <Button variant="ghost" size="icon">
-                    <Flag />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
+                        <Flag className="h-4 w-4" />
+                    </Button>
+                    <ReportDialog
+                        isOpen={isReportDialogOpen}
+                        onClose={() => setIsReportDialogOpen(false)}
+                        forumId={id_forum}
+                        title="Laporkan Forum"
+                    />
+                </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
                 <Link to="/a/forum/$forumId" params={{ forumId: id_forum }} search={{ focus: false }}>
