@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, queryOptions } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, queryOptions, useInfiniteQuery } from '@tanstack/react-query'
 import api from '../api/client'
 import { FORUM_ENDPOINTS } from '../api/endpoints'
 import type {
@@ -77,6 +77,26 @@ export const bookmarkedForumQueryOptions = () =>
 // Query: Get all forums (with optional filters/sorting)
 export function useForumList(filters?: GetAllForumInput) {
   return useQuery(forumListQueryOptions(filters))
+}
+
+// Query: Get all forums with infinite scroll
+export function useInfiniteForumList(filters?: GetAllForumInput) {
+  return useInfiniteQuery({
+    queryKey: [...forumKeys.lists(filters), 'infinite'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_ALL, {
+        params: { ...filters, page: pageParam, limit: filters?.limit || 10 },
+      })
+      return response.data
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination && lastPage.pagination.hasNextPage) {
+        return lastPage.pagination.currentPage + 1
+      }
+      return undefined
+    },
+  })
 }
 
 // Query: Get forums by subject

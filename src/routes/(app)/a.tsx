@@ -34,10 +34,14 @@ export const Route = createFileRoute('/(app)/a')({
 
 function ALayout() {
   const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
+  const isDetailForumPage = useMatch({ from: '/(app)/a/forum/$forumId', shouldThrow: false })
+  const isDetailUlasanPage = useMatch({ from: '/(app)/a/ulasan/$ulasanId', shouldThrow: false })
   const isForumPage = useMatch({ from: '/(app)/a/forum/', shouldThrow: false })
 
   // Determine current page type for sidebar filter
   const currentPage = isForumPage ? 'forum' : 'ulasan'
+
+  const showSidebarFilter = !isDetailForumPage && !isDetailUlasanPage && !isArmePage
 
   return (
     <SidebarProvider>
@@ -49,7 +53,7 @@ function ALayout() {
             <div className='flex-1 grow'>
               <Outlet />
             </div>
-            {!isArmePage && <SidebarFilter currentPage={currentPage} />}
+            {showSidebarFilter && <SidebarFilter currentPage={currentPage} />}
           </div>
         </div>
       </SidebarInset>

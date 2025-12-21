@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, queryOptions } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, queryOptions, useInfiniteQuery } from '@tanstack/react-query'
 import api from '../api/client'
 import { ULASAN_ENDPOINTS } from '../api/endpoints'
 import type {
@@ -70,6 +70,26 @@ export const ulasanDetailQueryOptions = (ulasanId: string) =>
 // Query: Get all ulasan (with optional filters/sorting)
 export function useUlasanList(filters?: GetAllUlasanInput) {
   return useQuery(ulasanListQueryOptions(filters))
+}
+
+// Query: Get all ulasan with infinite scroll
+export function useInfiniteUlasanList(filters?: GetAllUlasanInput) {
+  return useInfiniteQuery({
+    queryKey: [...ulasanKeys.lists(filters), 'infinite'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL, {
+        params: { ...filters, page: pageParam, limit: filters?.limit || 10 },
+      })
+      return response.data
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination && lastPage.pagination.hasNextPage) {
+        return lastPage.pagination.currentPage + 1
+      }
+      return undefined
+    },
+  })
 }
 
 // Query: Get liked ulasan

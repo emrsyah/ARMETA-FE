@@ -9,6 +9,7 @@ import { Badge } from "../ui/badge"
 import { ShareButton } from "../share-button"
 import { ReportDialog } from "../report-dialog"
 import { cn } from "@/lib/utils"
+import ImageLightbox from "../image-lightbox"
 
 type Props = {
     id: string;
@@ -52,6 +53,7 @@ const ReviewCard = ({
     const [currentLikeCount, setCurrentLikeCount] = useState(likeCount)
     const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
 
     useEffect(() => {
         setLiked(isLiked)
@@ -158,12 +160,13 @@ const ReviewCard = ({
                 {files && files.length > 0 && (
                     <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
                         {files.length === 1 ? (
-                            <a
-                                href={files[0]}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <div
                                 className="block w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isImage(files[0])) setSelectedImageIndex(0);
+                                    else window.open(files[0], '_blank');
+                                }}
                             >
                                 {isImage(files[0]) ? (
                                     <img
@@ -177,18 +180,19 @@ const ReviewCard = ({
                                         <span className="text-xs text-center truncate w-full px-2">{getFileName(files[0])}</span>
                                     </div>
                                 )}
-                            </a>
+                            </div>
                         ) : (
                             <div className={`grid gap-1 ${files.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
                                 {files.slice(0, 4).map((file, index) => (
-                                    <a
+                                    <div
                                         key={index}
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                         className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && files.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
                                             }`}
-                                        onClick={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (isImage(file)) setSelectedImageIndex(index);
+                                            else window.open(file, '_blank');
+                                        }}
                                     >
                                         {isImage(file) ? (
                                             <img
@@ -204,12 +208,18 @@ const ReviewCard = ({
                                                 <span className="text-[10px] text-center truncate w-full">{index === 0 && files.length > 1 ? getFileName(file) : 'PDF'}</span>
                                             </div>
                                         )}
-                                    </a>
+                                    </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 )}
+                <ImageLightbox
+                    images={files.filter(isImage)}
+                    initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
+                    isOpen={selectedImageIndex !== null}
+                    onClose={() => setSelectedImageIndex(null)}
+                />
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 {!isReply ? (

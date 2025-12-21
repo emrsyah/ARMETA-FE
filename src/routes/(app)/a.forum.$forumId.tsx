@@ -23,6 +23,8 @@ import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { ReportDialog } from '@/components/report-dialog'
+import { FileText, ImageIcon } from 'lucide-react'
+import ImageLightbox from '@/components/image-lightbox'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -46,7 +48,7 @@ const getInitials = (name: string | null | undefined) => {
 
 function ForumDetailPage() {
   const { forumId } = Route.useParams()
-  const { data: forum, isLoading: isForumLoading } = useForumDetail(forumId)
+  const { data: forum, isLoading: isForumLoading, isError } = useForumDetail(forumId)
 
   const [replyText, setReplyText] = useState('')
   const createUlasanMutation = useCreateUlasan()
@@ -57,6 +59,7 @@ function ForumDetailPage() {
   const [localIsBookmarked, setLocalIsBookmarked] = useState(false)
   const [localBookmarkCount, setLocalBookmarkCount] = useState(0)
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
 
   // Sync with forum data when it changes
   useEffect(() => {
@@ -147,8 +150,58 @@ function ForumDetailPage() {
     return <ForumDetailSkeleton />
   }
 
+  const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
+  const getFileName = (url: string) => url.split('/').pop() || 'File';
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="relative">
+          <Ghost className="h-24 w-24 text-muted-foreground/20" />
+          <motion.div
+            animate={{
+              y: [0, -10, 0],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute -top-2 -right-2"
+          >
+            <div className="bg-primary/10 p-2 rounded-full">
+              <MessageCircle className="h-6 w-6 text-primary/40" />
+            </div>
+          </motion.div>
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">Forum Tidak Ditemukan</h2>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Maaf, forum diskusi yang Anda cari tidak tersedia atau mungkin telah dihapus.
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/a/forum">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Ke Daftar Forum
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <LayoutGroup>
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={forum?.files?.filter(isImage) || []}
+        initialIndex={selectedImageIndex !== null ? forum?.files?.filter(isImage).indexOf(forum.files[selectedImageIndex]) ?? 0 : 0}
+        isOpen={selectedImageIndex !== null}
+        onClose={() => setSelectedImageIndex(null)}
+      />
       <div className="space-y-6 pb-60">
         {/* Back button */}
         <Link
@@ -189,12 +242,62 @@ function ForumDetailPage() {
           </CardHeader>
 
           <CardContent className="pt-6">
-            {/* Description */}
+            {/* Content */}
             <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                 {forum?.description || 'Tidak ada deskripsi untuk forum ini.'}
               </p>
             </div>
+
+            {/* Files Section */}
+            {forum?.files && forum.files.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ImageIcon className="h-4 w-4" />
+                  <span>{forum.files.length} Lampiran</span>
+                </div>
+                <div
+                  className={`grid gap-2 ${forum.files.length === 1
+                    ? 'grid-cols-1'
+                    : forum.files.length === 2
+                      ? 'grid-cols-2'
+                      : 'grid-cols-3'
+                    }`}
+                >
+                  {forum.files.map((file, index) => {
+                    if (isImage(file)) {
+                      return (
+                        <button
+                          key={index}
+                          className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer border"
+                          onClick={() => setSelectedImageIndex(index)}
+                        >
+                          <img
+                            src={file}
+                            alt={`Image ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        </button>
+                      )
+                    } else {
+                      return (
+                        <a
+                          key={index}
+                          href={file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="relative aspect-video overflow-hidden rounded-lg group cursor-pointer border bg-gray-50 flex flex-col items-center justify-center p-4 hover:bg-gray-100 transition-colors"
+                        >
+                          <FileText className="h-10 w-10 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-600 font-medium truncate w-full text-center">{getFileName(file)}</span>
+                        </a>
+                      )
+                    }
+                  })}
+                </div>
+              </div>
+            )}
 
             <Separator className="my-6" />
 

@@ -24,6 +24,7 @@ import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { ReportDialog } from '@/components/report-dialog'
+import ImageLightbox from '@/components/image-lightbox'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
 
 function UlasanDetailPage() {
   const { ulasanId } = Route.useParams()
-  const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching } = useUlasanDetail(ulasanId)
+  const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching, isError } = useUlasanDetail(ulasanId)
 
   const [replyText, setReplyText] = useState('')
   const createUlasanMutation = useCreateUlasan()
@@ -138,6 +139,46 @@ function UlasanDetailPage() {
     return <UlasanDetailSkeleton />
   }
 
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="relative">
+          <Ghost className="h-24 w-24 text-muted-foreground/20" />
+          <motion.div
+            animate={{
+              y: [0, -10, 0],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute -top-2 -right-2"
+          >
+            <div className="bg-primary/10 p-2 rounded-full">
+              <FileText className="h-6 w-6 text-primary/40" />
+            </div>
+          </motion.div>
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">Ulasan Tidak Ditemukan</h2>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Maaf, ulasan yang Anda cari tidak tersedia atau mungkin telah dihapus oleh pemiliknya.
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/a/home">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Ke Beranda
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
   const getFileName = (url: string) => url.split('/').pop() || 'File';
 
@@ -145,55 +186,12 @@ function UlasanDetailPage() {
     <LayoutGroup>
 
       {/* Image Lightbox */}
-      {selectedImageIndex !== null && ulasan?.files && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setSelectedImageIndex(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white hover:text-gray-300"
-            onClick={() => setSelectedImageIndex(null)}
-          >
-            ✕
-          </button>
-          <img
-            src={ulasan.files[selectedImageIndex]}
-            alt={`Image ${selectedImageIndex + 1}`}
-            className="max-w-full max-h-full object-contain"
-          />
-          {/* Navigation buttons */}
-          {ulasan.files.length > 1 && (
-            <>
-              <button
-                className="absolute left-4 text-white hover:text-gray-300 text-2xl p-2"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  let newIndex = (selectedImageIndex - 1 + ulasan.files.length) % ulasan.files.length;
-                  while (!isImage(ulasan.files[newIndex]) && newIndex !== selectedImageIndex) {
-                    newIndex = (newIndex - 1 + ulasan.files.length) % ulasan.files.length;
-                  }
-                  setSelectedImageIndex(newIndex)
-                }}
-              >
-                ←
-              </button>
-              <button
-                className="absolute right-4 text-white hover:text-gray-300 text-2xl p-2"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  let newIndex = (selectedImageIndex + 1) % ulasan.files.length;
-                  while (!isImage(ulasan.files[newIndex]) && newIndex !== selectedImageIndex) {
-                    newIndex = (newIndex + 1) % ulasan.files.length;
-                  }
-                  setSelectedImageIndex(newIndex)
-                }}
-              >
-                →
-              </button>
-            </>
-          )}
-        </div>
-      )}
+      <ImageLightbox
+        images={ulasan?.files?.filter(isImage) || []}
+        initialIndex={selectedImageIndex !== null ? ulasan?.files?.filter(isImage).indexOf(ulasan.files[selectedImageIndex]) ?? 0 : 0}
+        isOpen={selectedImageIndex !== null}
+        onClose={() => setSelectedImageIndex(null)}
+      />
 
       <div className="space-y-6 pb-60">
         {/* Back button */}

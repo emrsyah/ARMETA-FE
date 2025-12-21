@@ -1,14 +1,16 @@
 import ReviewCard from '@/components/card/review-card'
 import { createFileRoute } from '@tanstack/react-router'
 import { useProfile } from '@/lib/queries/user'
-import { useUlasanList } from '@/lib/queries/ulasan'
+import { useInfiniteUlasanList } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CreateReviewModal from '@/components/create-review-modal'
 import { Input } from '@/components/ui/input'
 import { motion, LayoutGroup } from 'motion/react'
 import { Route as ALayoutRoute } from './a'
 import { getDateRangeFromFilter } from '@/lib/utils'
+import { useInView } from 'react-intersection-observer'
+import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/(app)/a/home')({
   // Note: No SSR prefetching for authenticated queries (cookies not available in SSR)
@@ -18,24 +20,40 @@ export const Route = createFileRoute('/(app)/a/home')({
 function HomePage() {
   const { data: user, isLoading: isUserLoading } = useProfile()
   const search = ALayoutRoute.useSearch()
+  const { ref, inView } = useInView()
 
   // Calculate date range if filter is active
   const dateRange = search.filter ? getDateRangeFromFilter(search.filter) : null
 
-  // Use unified query with filters/sorting
-  const { data: ulasanList, isLoading: isUlasanLoading } = useUlasanList({
+  // Use unified infinite query with filters/sorting
+  const {
+    data,
+    isLoading: isUlasanLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUlasanList({
     from: dateRange?.from,
     to: dateRange?.to,
     sortBy: search.sortBy,
     order: search.order,
   })
 
+  // Flatten all pages of ulasan
+  const allUlasan = data?.pages.flatMap((page) => page.data) || []
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
   const [openCreateReviewModal, setOpenCreateReviewModal] = useState(false)
 
   return (
     <LayoutGroup>
       <CreateReviewModal open={openCreateReviewModal} onOpenChange={setOpenCreateReviewModal} />
-      <div className="space-y-6 pb-60">
+      <div className="space-y-6 pb-20">
         <h1 className="text-3xl font-bold text-gray-900">
           Selamat datang{' '}
           {isUserLoading ? (
@@ -78,26 +96,41 @@ function HomePage() {
               </div>
             ))}
           </div>
-        ) : ulasanList && ulasanList.length > 0 ? (
-          ulasanList.map((ulasan) => (
-            <ReviewCard
-              key={ulasan.id_review}
-              id={ulasan.id_review}
-              subjectName={ulasan.lecturer_name != "" ? ulasan.lecturer_name : ulasan.subject_name != "" ? ulasan.subject_name : ""}
-              type={ulasan.lecturer_name != "" ? "dosen" : ulasan.subject_name != "" ? "matkul" : undefined}
-              userName={ulasan.user?.name || 'User'} // TODO: Fetch user data for each review
-              avatarFallback="U"
-              avatarUrl={ulasan.user?.image || 'U'}
-              title={ulasan.title}
-              content={ulasan.body}
-              files={ulasan.files}
-              commentCount={ulasan.total_reply || 0}
-              bookmarkCount={ulasan.total_bookmarks ?? 0}
-              likeCount={ulasan.total_likes ?? 0}
-              isLiked={!!ulasan.is_liked}
-              isBookmarked={!!ulasan.is_bookmarked}
-            />
-          ))
+        ) : allUlasan.length > 0 ? (
+          <>
+            <div className="space-y-4">
+              {allUlasan.map((ulasan) => (
+                <ReviewCard
+                  key={ulasan.id_review}
+                  id={ulasan.id_review}
+                  subjectName={ulasan.lecturer_name != "" ? ulasan.lecturer_name : ulasan.subject_name != "" ? ulasan.subject_name : ""}
+                  type={ulasan.lecturer_name != "" ? "dosen" : ulasan.subject_name != "" ? "matkul" : undefined}
+                  userName={ulasan.user?.name || 'User'}
+                  avatarFallback="U"
+                  avatarUrl={ulasan.user?.image || 'U'}
+                  title={ulasan.title}
+                  content={ulasan.body}
+                  files={ulasan.files}
+                  commentCount={ulasan.total_reply || 0}
+                  bookmarkCount={ulasan.total_bookmarks ?? 0}
+                  likeCount={ulasan.total_likes ?? 0}
+                  isLiked={!!ulasan.is_liked}
+                  isBookmarked={!!ulasan.is_bookmarked}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Ref / Loading Spinner */}
+            <div ref={ref} className="py-8 flex justify-center">
+              {isFetchingNextPage ? (
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              ) : hasNextPage ? (
+                <div className="h-1" />
+              ) : (
+                <p className="text-sm text-gray-500">Sudah menampilkan semua ulasan</p>
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <p>Belum ada ulasan. Jadilah yang pertama menulis ulasan!</p>

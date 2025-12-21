@@ -1,4 +1,4 @@
-import { Flag, MessageCircle, Bookmark, Heart, Ghost } from "lucide-react"
+import { Flag, MessageCircle, Bookmark, Heart, Ghost, FileText } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -11,6 +11,7 @@ import type { Forum } from "@/lib/schemas/forum.schema"
 import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from "@/lib/queries/forum"
 import { useState, useEffect } from "react"
 import { ReportDialog } from "../report-dialog"
+import ImageLightbox from "../image-lightbox"
 
 export type ForumReply = {
     authorName: string
@@ -55,6 +56,7 @@ const ForumCard = ({
     total_reply,
     is_liked,
     is_bookmarked,
+    files,
     isAnonymous = false,
     replies = [],
 }: ForumCardProps) => {
@@ -64,6 +66,7 @@ const ForumCard = ({
     const [localIsBookmarked, setLocalIsBookmarked] = useState(is_bookmarked)
     const [localBookmarkCount, setLocalBookmarkCount] = useState(total_bookmark)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
 
     // Sync with props when they change (e.g., from refetch)
     useEffect(() => {
@@ -137,6 +140,9 @@ const ForumCard = ({
         }
     }
 
+    const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
+    const getFileName = (url: string) => url.split('/').pop() || 'File';
+
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
@@ -177,6 +183,41 @@ const ForumCard = ({
                         </div>
                     </div>
                 )}
+                {/* Image Attachments */}
+                {files && files.length > 0 && (
+                    <div className="mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {files.map((file, index) => (
+                            <div
+                                key={index}
+                                className="shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isImage(file)) setSelectedImageIndex(index);
+                                    else window.open(file, '_blank');
+                                }}
+                            >
+                                {isImage(file) ? (
+                                    <img
+                                        src={file}
+                                        alt={`Forum attachment ${index + 1}`}
+                                        className="h-20 w-32 object-cover rounded-md border border-gray-100"
+                                    />
+                                ) : (
+                                    <div className="h-20 w-32 bg-gray-50 rounded-md flex flex-col items-center justify-center p-2 text-gray-400 border border-gray-100">
+                                        <FileText className="h-6 w-6 mb-1" />
+                                        <span className="text-[10px] text-center truncate w-full">{getFileName(file)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <ImageLightbox
+                    images={files.filter(isImage)}
+                    initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
+                    isOpen={selectedImageIndex !== null}
+                    onClose={() => setSelectedImageIndex(null)}
+                />
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

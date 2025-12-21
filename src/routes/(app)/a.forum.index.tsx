@@ -1,14 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import ForumCard from '@/components/card/forum-card'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import CreateForumModal from '@/components/create-forum-modal'
 import { Input } from '@/components/ui/input'
 import { motion, LayoutGroup } from 'motion/react'
-import { useForumList } from '@/lib/queries'
+import { useInfiniteForumList } from '@/lib/queries'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Route as ALayoutRoute } from './a'
 import { getDateRangeFromFilter } from '@/lib/utils'
 import type { GetAllForumInput } from '@/lib/schemas/forum.schema'
+import { useInView } from 'react-intersection-observer'
+import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/(app)/a/forum/')({
   component: ForumPage,
@@ -17,6 +19,7 @@ export const Route = createFileRoute('/(app)/a/forum/')({
 function ForumPage() {
   const [openCreateForumModal, setOpenCreateForumModal] = useState(false)
   const search = ALayoutRoute.useSearch()
+  const { ref, inView } = useInView()
 
   // Build filter params from search state
   const filterParams = useMemo<GetAllForumInput | undefined>(() => {
@@ -33,13 +36,28 @@ function ForumPage() {
     }
   }, [search.filter, search.sortBy, search.order])
 
-  // Use unified query with optional filters
-  const { data: forums, isLoading } = useForumList(filterParams)
+  // Use unified infinite query with optional filters
+  const {
+    data,
+    isLoading: isForumLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteForumList(filterParams)
+
+  // Flatten all pages of forums
+  const allForums = data?.pages.flatMap((page) => page.data) || []
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <LayoutGroup>
       <CreateForumModal open={openCreateForumModal} onOpenChange={setOpenCreateForumModal} />
-      <div className="space-y-6 pb-60">
+      <div className="space-y-6 pb-20">
         <h1 className="text-3xl font-bold text-gray-900">Forum Diskusi</h1>
 
         {!openCreateForumModal && (
@@ -61,7 +79,7 @@ function ForumPage() {
           </motion.div>
         )}
 
-        {isLoading ? (
+        {isForumLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-lg border p-4 space-y-4">
@@ -85,13 +103,28 @@ function ForumPage() {
               </div>
             ))}
           </div>
-        ) : forums && forums.length > 0 ? (
-          forums.map((forum) => (
-            <ForumCard
-              key={forum.id_forum}
-              {...forum}
-            />
-          ))
+        ) : allForums.length > 0 ? (
+          <>
+            <div className="space-y-4">
+              {allForums.map((forum) => (
+                <ForumCard
+                  key={forum.id_forum}
+                  {...forum}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Ref / Loading Spinner */}
+            <div ref={ref} className="py-8 flex justify-center">
+              {isFetchingNextPage ? (
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              ) : hasNextPage ? (
+                <div className="h-1" />
+              ) : (
+                <p className="text-sm text-gray-500">Sudah menampilkan semua forum</p>
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <p>Belum ada forum. Jadilah yang pertama membuat forum diskusi!</p>
