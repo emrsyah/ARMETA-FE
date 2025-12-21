@@ -182,7 +182,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
         >
           <DialogHeader className="mb-4">
             <DialogTitle>
-              {isEdit ? 'Edit Ulasan' : isReply ? 'Buat Balasan' : 'Buat Ulasan'}
+              {isEdit ? 'Edit Ulasan' : (forumId ? 'Buat Ulasan' : isReply ? 'Buat Balasan' : 'Buat Ulasan')}
             </DialogTitle>
           </DialogHeader>
 
@@ -237,12 +237,12 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
                   control={form.control}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Judul {isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
+                      <FormLabel>Judul {forumId ? 'Ulasan' : isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
-                            placeholder={`Masukkan judul ${isReply ? 'balasan' : 'ulasan'}...`}
+                            placeholder={`Masukkan judul ${forumId ? 'ulasan' : isReply ? 'balasan' : 'ulasan'}...`}
                             autoFocus
                             maxLength={100}
                             className="pr-12"
@@ -264,12 +264,12 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Isi {isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormLabel>Isi {forumId ? 'Ulasan' : isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Textarea
                           {...field}
-                          placeholder={`Tulis ${isReply ? 'balasan' : 'ulasan'} Anda di sini...`}
+                          placeholder={`Tulis ${forumId ? 'ulasan' : isReply ? 'balasan' : 'ulasan'} Anda di sini...`}
                           className="min-h-[120px] resize-none pb-6 pr-12"
                           maxLength={1000}
                         />

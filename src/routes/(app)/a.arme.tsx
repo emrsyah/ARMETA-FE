@@ -313,13 +313,13 @@ function ArmePage() {
                       )
                     }
 
-                    if (part.type === 'tool-get_similar_ulasan') {
+                    if (part.type === 'tool-get_similar_ulasan' || part.type === 'tool-search_ulasan_text') {
                       return (
                         <Tool key={idx} className="max-w-2xl">
                           <ToolHeader
                             type={part.type as any}
                             state={part.state as any}
-                            title="Mencari Ulasan Serupa"
+                            title={part.type === 'tool-get_similar_ulasan' ? "Mencari Ulasan Serupa" : "Mencari Ulasan Berdasarkan Kata Kunci"}
                           />
                           <ToolContent>
                             {part.state === 'output-available' ? (
@@ -367,13 +367,17 @@ function ArmePage() {
                       )
                     }
 
-                    if (part.type === 'tool-get_similar_forum') {
+                    if (part.type === 'tool-get_similar_forum' || part.type === 'tool-search_forum_text' || part.type === 'tool-get_forums_by_subject') {
+                      let title = "Mencari Diskusi Forum";
+                      if (part.type === 'tool-search_forum_text') title = "Mencari Forum Berdasarkan Kata Kunci";
+                      if (part.type === 'tool-get_forums_by_subject') title = "Mencari Forum Berdasarkan Mata Kuliah";
+
                       return (
                         <Tool key={idx} className="max-w-2xl">
                           <ToolHeader
                             type={part.type as any}
                             state={part.state as any}
-                            title="Mencari Diskusi Forum"
+                            title={title}
                           />
                           <ToolContent>
                             {part.state === 'output-available' ? (
@@ -399,6 +403,147 @@ function ArmePage() {
                                   />
                                 )}
                               </>
+                            )}
+                          </ToolContent>
+                        </Tool>
+                      )
+                    }
+
+                    if (part.type === 'tool-get_ulasan_detail') {
+                      return (
+                        <Tool key={idx} className="max-w-2xl">
+                          <ToolHeader
+                            type={part.type as any}
+                            state={part.state as any}
+                            title="Melihat Detail Ulasan"
+                          />
+                          <ToolContent>
+                            {part.state === 'output-available' ? (
+                              <div className="p-4 pt-0">
+                                <ReviewCard
+                                  id={(part.output as any).id_review}
+                                  userName={(part.output as any).user?.name || 'User'}
+                                  avatarFallback="U"
+                                  avatarUrl={(part.output as any).user?.image || undefined}
+                                  title={(part.output as any).title}
+                                  content={(part.output as any).body}
+                                  files={(part.output as any).files}
+                                  commentCount={(part.output as any).total_reply || 0}
+                                  bookmarkCount={(part.output as any).total_bookmarks || 0}
+                                  likeCount={(part.output as any).total_likes || 0}
+                                  isLiked={!!(part.output as any).is_liked}
+                                  isBookmarked={!!(part.output as any).is_bookmarked}
+                                  subjectName={(part.output as any).subject_name}
+                                  lecturerName={(part.output as any).lecturer_name}
+                                  isReply={!!((part.output as any).id_reply || (part.output as any).id_forum)}
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                <ToolInput input={part.input} />
+                                {part.state === 'output-error' && (
+                                  <ToolOutput
+                                    output={null}
+                                    errorText={part.errorText}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </ToolContent>
+                        </Tool>
+                      )
+                    }
+
+                    if (part.type === 'tool-get_forum_detail') {
+                      return (
+                        <Tool key={idx} className="max-w-2xl">
+                          <ToolHeader
+                            type={part.type as any}
+                            state={part.state as any}
+                            title="Melihat Detail Forum"
+                          />
+                          <ToolContent>
+                            {part.state === 'output-available' ? (
+                              <div className="p-4 pt-0">
+                                <ForumCard {...(part.output as any)} />
+                              </div>
+                            ) : (
+                              <>
+                                <ToolInput input={part.input} />
+                                {part.state === 'output-error' && (
+                                  <ToolOutput
+                                    output={null}
+                                    errorText={part.errorText}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </ToolContent>
+                        </Tool>
+                      )
+                    }
+
+                    if (part.type === 'tool-get_all_lecturers' || part.type === 'tool-get_all_subjects') {
+                      return (
+                        <Tool key={idx} className="max-w-2xl">
+                          <ToolHeader
+                            type={part.type as any}
+                            state={part.state as any}
+                            title={part.type === 'tool-get_all_lecturers' ? "Melihat Daftar Dosen" : "Melihat Daftar Mata Kuliah"}
+                          />
+                          <ToolContent>
+                            {part.state === 'output-available' ? (
+                              <div className="p-4 pt-0 overflow-x-auto">
+                                <table className="w-full border-collapse text-xs">
+                                  <thead>
+                                    <tr className="border-b bg-muted/50">
+                                      <th className="p-2 text-left font-semibold">Nama</th>
+                                      <th className="p-2 text-left font-semibold">{part.type === 'tool-get_all_lecturers' ? 'Fakultas' : 'Kode'}</th>
+                                      <th className="p-2 text-left font-semibold">ID</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(part.output as any[]).map((item: any, i: number) => (
+                                      <tr key={i} className="border-b hover:bg-muted/30">
+                                        <td className="p-2">{item.name}</td>
+                                        <td className="p-2">{item.faculty || item.code}</td>
+                                        <td className="p-2 font-mono text-[10px]">{item.id_lecturer || item.id_subject}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : (
+                              <>
+                                <ToolInput input={part.input} />
+                                {part.state === 'output-error' && (
+                                  <ToolOutput
+                                    output={null}
+                                    errorText={part.errorText}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </ToolContent>
+                        </Tool>
+                      )
+                    }
+
+                    // Fallback for any other tools (like webSearch)
+                    if (part.type?.startsWith('tool-')) {
+                      return (
+                        <Tool key={idx} className="max-w-2xl">
+                          <ToolHeader
+                            type={part.type as any}
+                            state={part.state as any}
+                          />
+                          <ToolContent>
+                            <ToolInput input={part.input} />
+                            {part.state === 'output-available' && (
+                              <ToolOutput output={part.output} errorText={undefined} />
+                            )}
+                            {part.state === 'output-error' && (
+                              <ToolOutput output={undefined} errorText={part.errorText} />
                             )}
                           </ToolContent>
                         </Tool>
