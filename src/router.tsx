@@ -22,6 +22,8 @@ export const getRouter = () => {
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
+    scrollRestorationBehavior: 'auto',
+    getScrollRestorationKey: (location) => location.pathname,
     defaultPreloadStaleTime: 0,
     context: {
       queryClient,
