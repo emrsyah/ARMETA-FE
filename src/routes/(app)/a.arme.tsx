@@ -325,7 +325,10 @@ function ArmePage() {
                             {part.state === 'output-available' ? (
                               <div className="p-4 pt-0">
                                 <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                                  {part.output.map((ulasan: UlasanListItem) => (
+                                  {(Array.isArray(part.output)
+                                    ? part.output
+                                    : (part.output as any)?.results || []
+                                  ).map((ulasan: UlasanListItem) => (
                                     <div key={ulasan.id_review} className="min-w-[300px] max-w-[350px]">
                                       <ReviewCard
                                         id={ulasan.id_review}
@@ -375,7 +378,10 @@ function ArmePage() {
                             {part.state === 'output-available' ? (
                               <div className="p-4 pt-0">
                                 <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                                  {part.output.map((forum: Forum) => (
+                                  {(Array.isArray(part.output)
+                                    ? part.output
+                                    : (part.output as any)?.results || []
+                                  ).map((forum: Forum) => (
                                     <div key={forum.id_forum} className="min-w-[300px] max-w-[350px]">
                                       <ForumCard {...forum} />
                                     </div>

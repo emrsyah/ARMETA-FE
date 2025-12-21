@@ -52,7 +52,7 @@ export const getTools = (authToken?: string) => ({
             const response = await api.post<ForumListResponse>(FORUM_ENDPOINTS.SEARCH_SIMILAR, { query, limit }, {
                 headers: authToken ? { Authorization: authToken } : undefined
             });
-            return response.data.data;
+            return (response.data.data as any).results || response.data.data;
         },
     }),
 })
