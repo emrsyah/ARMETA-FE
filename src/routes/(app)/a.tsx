@@ -1,8 +1,9 @@
-import { createFileRoute, Outlet, useMatch } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatch, redirect } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
 import SidebarFilter from '@/components/sidebar-filter'
+import { profileQueryOptions } from '@/lib/queries/user'
 
 // Filter search params type - shared across child routes
 export type FilterType = 'today' | 'week' | 'month' | 'year'
@@ -16,6 +17,15 @@ export type FilterSearch = {
 }
 
 export const Route = createFileRoute('/(app)/a')({
+  beforeLoad: async ({ context }) => {
+    try {
+      await context.queryClient.ensureQueryData(profileQueryOptions())
+    } catch (error) {
+      throw redirect({
+        to: '/',
+      })
+    }
+  },
   validateSearch: (search: Record<string, unknown>): FilterSearch => {
     return {
       filter: ['today', 'week', 'month', 'year'].includes(search.filter as string)
