@@ -7,36 +7,44 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Convert filter type to date range (from, to) in ISO format
+ * Convert filter type to date range (from, to) in ISO format (YYYY-MM-DD)
+ * Uses local time to determine the dates.
  */
 export function getDateRangeFromFilter(filter: FilterType): { from: string; to: string } {
   const now = new Date()
-  const to = now.toISOString().split('T')[0] // Today in YYYY-MM-DD format
-  
-  let from: Date
-  
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const to = formatDate(now)
+  let fromDate: Date
+
   switch (filter) {
     case 'today':
-      from = now
+      fromDate = now
       break
     case 'week':
-      from = new Date(now)
-      from.setDate(now.getDate() - 7)
+      fromDate = new Date(now)
+      fromDate.setDate(now.getDate() - 7)
       break
     case 'month':
-      from = new Date(now)
-      from.setDate(now.getDate() - 30)
+      fromDate = new Date(now)
+      fromDate.setDate(now.getDate() - 30)
       break
     case 'year':
-      from = new Date(now)
-      from.setFullYear(now.getFullYear() - 1)
+      fromDate = new Date(now)
+      fromDate.setFullYear(now.getFullYear() - 1)
       break
     default:
-      from = now
+      fromDate = now
   }
-  
+
   return {
-    from: from.toISOString().split('T')[0],
+    from: formatDate(fromDate),
     to,
   }
 }
