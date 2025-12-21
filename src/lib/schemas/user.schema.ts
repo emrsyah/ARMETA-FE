@@ -7,8 +7,10 @@ export const userSchema = z.object({
   email: z.string().email(),
   image: z.string().nullable(),
   poin: z.number().default(0),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  role: z.string().default('user'),
+  is_banned: z.boolean().default(false),
+  created_at: z.string().datetime().nullable().optional(),
+  updated_at: z.string().datetime().nullable().optional(),
 })
 
 export type User = z.infer<typeof userSchema>

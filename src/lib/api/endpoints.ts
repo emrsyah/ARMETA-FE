@@ -16,6 +16,20 @@ export const USER_ENDPOINTS = {
 export const LECTURER_SUBJECT_ENDPOINTS = {
   GET_LECTURERS: '/api/lecturer-subjects/getLecturers',
   GET_SUBJECTS: '/api/lecturer-subjects/getSubjects',
+  CREATE_LECTURER: '/api/lecturer-subjects/lecturer',
+  UPDATE_LECTURER: '/api/lecturer-subjects/lecturer', // + /:id
+  DELETE_LECTURER: '/api/lecturer-subjects/lecturer', // + /:id
+  CREATE_SUBJECT: '/api/lecturer-subjects/subject',
+  UPDATE_SUBJECT: '/api/lecturer-subjects/subject', // + /:id
+  DELETE_SUBJECT: '/api/lecturer-subjects/subject', // + /:id
+} as const
+
+export const ADMIN_ENDPOINTS = {
+  STATS: '/api/admin/stats',
+  GET_ALL_USERS: '/api/admin/users',
+  TOGGLE_BAN: '/api/admin/users', // + /:id_user/ban
+  UPDATE_ROLE: '/api/admin/users', // + /:id_user/role
+  DELETE_CONTENT: '/api/admin/content', // + /:type/:id
 } as const
 
 export const ULASAN_ENDPOINTS = {
