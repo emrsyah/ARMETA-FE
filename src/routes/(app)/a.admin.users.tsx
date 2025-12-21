@@ -59,7 +59,6 @@ function AdminUsers() {
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Poin</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -93,9 +92,6 @@ function AdminUsers() {
                       <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">Aktif</Badge>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <span className="text-sm font-medium">{user.poin}</span>
-                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -105,19 +101,6 @@ function AdminUsers() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuLabel>Pengaturan User</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-
-                        {/* Change Role Submenu */}
-                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id_user, 'user')}>
-                          <UserIcon className="mr-2 h-4 w-4" /> Set as User
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id_user, 'moderator')}>
-                          <Shield className="mr-2 h-4 w-4" /> Set as Moderator
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id_user, 'admin')} className="text-red-600">
-                          <ShieldAlert className="mr-2 h-4 w-4" /> Set as Admin
-                        </DropdownMenuItem>
-
                         <DropdownMenuSeparator />
 
                         {/* Ban/Unban */}

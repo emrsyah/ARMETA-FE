@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircle2, Trash2, ExternalLink } from 'lucide-react'
+import { CheckCircle2, Trash2, ExternalLink, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAllReports, useResolveReport, useDeleteContent } from '@/lib/queries/admin'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -9,6 +9,14 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { useState } from 'react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -112,31 +120,34 @@ function AdminReports() {
                       {report.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right space-x-1 whitespace-nowrap">
+                  <TableCell className="text-right whitespace-nowrap">
                     {report.status === 'Pending' && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Selesaikan (Abaikan)"
-                          onClick={() => handleResolve(report.id_report, 'Ignored')}
-                        >
-                          <CheckCircle2 size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          title="Hapus Konten"
-                          onClick={() => {
-                            if (report.id_review) setDeleteDialog({ open: true, type: 'review', id: report.id_review, reportId: report.id_report })
-                            else if (report.id_forum) setDeleteDialog({ open: true, type: 'forum', id: report.id_forum, reportId: report.id_report })
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel>Aksi Laporan</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleResolve(report.id_report, 'Ignored')}
+                            className="text-green-600 focus:text-green-600 cursor-pointer"
+                          >
+                            <CheckCircle2 className="mr-2 h-4 w-4" /> Selesaikan (Abaikan)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              if (report.id_review) setDeleteDialog({ open: true, type: 'review', id: report.id_review, reportId: report.id_report })
+                              else if (report.id_forum) setDeleteDialog({ open: true, type: 'forum', id: report.id_forum, reportId: report.id_report })
+                            }}
+                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Hapus Konten
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </TableCell>
                 </TableRow>
