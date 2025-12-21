@@ -6,25 +6,33 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X, Ghost } from "lucide-react"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, useEffect } from "react"
 import { Textarea } from "./ui/textarea"
 import { Input } from "./ui/input"
 import { Combobox } from "./ui/combobox"
 import { useSubjects } from "@/lib/queries/lecturer-subject"
-import { useCreateForum } from "@/lib/queries/forum"
+import { useCreateForum, useEditForum } from "@/lib/queries/forum"
 import { toast } from "sonner"
 import { Switch } from "./ui/switch"
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  editData?: {
+    id_forum: string;
+    title: string;
+    description?: string;
+    id_subject: string;
+    isAnonymous: boolean;
+  }
 }
 
-const CreateForumModal = ({ open, onOpenChange }: Props) => {
+const CreateForumModal = ({ open, onOpenChange, editData }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: subjects = [] } = useSubjects()
   const createForumMutation = useCreateForum()
+  const editForumMutation = useEditForum()
 
   const subjectList = useMemo(() =>
     subjects.map((subject) => ({
@@ -42,6 +50,29 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
       isAnonymous: false,
     },
   })
+
+  // Sync form with editData
+  useEffect(() => {
+    if (open) {
+      if (editData) {
+        form.reset({
+          title: editData.title,
+          description: editData.description ?? '',
+          id_subject: editData.id_subject,
+          files: [],
+          isAnonymous: editData.isAnonymous,
+        })
+      } else {
+        form.reset({
+          title: '',
+          description: '',
+          id_subject: '',
+          files: [],
+          isAnonymous: false,
+        })
+      }
+    }
+  }, [open, editData, form])
 
   const files = form.watch('files') || []
 
@@ -73,23 +104,43 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
 
   const onSubmit = async (data: CreateForumInput) => {
     if (!data.id_subject) {
-      toast('Mata Kuliah Wajib Diisi')
+      toast.error('Mata Kuliah Wajib Diisi')
       return
     }
+
     try {
-      await createForumMutation.mutateAsync({
-        title: data.title,
-        description: data.description,
-        id_subject: data.id_subject,
-        files: data.files,
-        isAnonymous: data.isAnonymous,
-      })
+      if (editData) {
+        // Handle Edit
+        await editForumMutation.mutateAsync({
+          id_forum: editData.id_forum,
+          title: data.title,
+          description: data.description,
+          // Note: isAnonymous might be boolean or string in the frontend, 
+          // but schema and mutation handle it.
+          isAnonymous: data.isAnonymous,
+          files: data.files
+        })
+        toast.success("Forum berhasil diperbarui")
+      } else {
+        // Handle Create
+        await createForumMutation.mutateAsync({
+          title: data.title,
+          description: data.description,
+          id_subject: data.id_subject,
+          files: data.files,
+          isAnonymous: data.isAnonymous,
+        })
+        toast.success("Forum berhasil dibuat")
+      }
       form.reset()
       onOpenChange(false)
     } catch (error) {
-      console.error('Failed to create forum:', error)
+      console.error('Failed to submit forum:', error)
+      toast.error(editData ? "Gagal memperbarui forum" : "Gagal membuat forum")
     }
   }
+
+  const isPending = createForumMutation.isPending || editForumMutation.isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,12 +155,12 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
           }}
         >
           <DialogHeader className="mb-4">
-            <DialogTitle>Buat Forum</DialogTitle>
+            <DialogTitle>{editData ? 'Edit Forum' : 'Buat Forum'}</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Subject Selection */}
+              {/* Subject Selection - Disable or hide if editing (optional, but usually subjects don't change) */}
               <FormField
                 name="id_subject"
                 control={form.control}
@@ -247,8 +298,8 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
 
                 {/* Submit Button */}
                 <div className="flex gap-2">
-                  <Button size={'lg'} type="submit" loading={createForumMutation.isPending}>
-                    Kirim
+                  <Button size={'lg'} type="submit" loading={isPending}>
+                    {editData ? 'Perbarui' : 'Kirim'}
                   </Button>
                 </div>
               </div>

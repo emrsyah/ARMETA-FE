@@ -6,6 +6,7 @@ import type {
   ForumDetailResponse,
   ForumListResponse,
   CreateForumInput,
+  EditForumInput,
   GetAllForumInput,
 } from '../schemas/forum.schema'
 
@@ -163,6 +164,50 @@ export function useCreateForum() {
       if (data.id_subject) {
         queryClient.invalidateQueries({ queryKey: forumKeys.bySubject(data.id_subject) })
       }
+    },
+  })
+}
+
+// Mutation: Edit forum
+export function useEditForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: EditForumInput) => {
+      const formData = new FormData()
+      formData.append('id_forum', data.id_forum)
+      if (data.title) formData.append('title', data.title)
+      if (data.description) formData.append('description', data.description)
+      if (data.isAnonymous !== undefined) formData.append('isAnonymous', String(data.isAnonymous))
+      if (data.files) {
+        data.files.forEach((file: File) => formData.append('files', file))
+      }
+
+      const response = await api.patch<ForumResponse>(FORUM_ENDPOINTS.EDIT, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return response.data.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.detail(data.id_forum) })
+      queryClient.invalidateQueries({ queryKey: forumKeys.lists() })
+    },
+  })
+}
+
+// Mutation: Delete forum
+export function useDeleteForum() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_forum: string) => {
+      const response = await api.delete(FORUM_ENDPOINTS.DELETE, {
+        data: { id_forum },
+      })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: forumKeys.all })
     },
   })
 }

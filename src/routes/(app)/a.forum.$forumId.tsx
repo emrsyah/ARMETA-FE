@@ -457,6 +457,7 @@ function ForumDetailPage() {
                 likeCount={reply.total_like || 0}
                 isReply={true}
                 userId={reply.user?.id_user!}
+                idForum={forumId}
               />
             ))
           ) : (

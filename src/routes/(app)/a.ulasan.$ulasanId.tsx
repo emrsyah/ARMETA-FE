@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useUlasanDetail, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark, useCreateUlasan } from '@/lib/queries/ulasan'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useUlasanDetail, useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark, useCreateUlasan, useDeleteUlasan } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,9 @@ import {
   Calendar,
   FileText,
   Ghost,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import ReviewCard from '@/components/card/review-card'
@@ -26,6 +29,22 @@ import { ShareButton } from '@/components/share-button'
 import { ReportDialog } from '@/components/report-dialog'
 import ImageLightbox from '@/components/image-lightbox'
 import { toast } from 'sonner'
+import { useProfile } from '@/lib/queries'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import CreateReviewModal from '@/components/create-review-modal'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -39,15 +58,21 @@ export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
 function UlasanDetailPage() {
   const { ulasanId } = Route.useParams()
   const { data: ulasan, isLoading: isUlasanLoading, isFetching: isUlasanRefetching, isError } = useUlasanDetail(ulasanId)
+  const { data: currentUser } = useProfile()
+  const navigate = useNavigate()
 
   const [replyText, setReplyText] = useState('')
   const createUlasanMutation = useCreateUlasan()
+  const deleteUlasanMutation = useDeleteUlasan()
+
   const [liked, setLiked] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [bookmarkCount, setBookmarkCount] = useState(0)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const likeMutation = useLikeUlasan()
   const unlikeMutation = useUnlikeUlasan()
@@ -55,6 +80,8 @@ function UlasanDetailPage() {
   const removeBookmarkMutation = useRemoveBookmark()
   const { focus } = Route.useSearch()
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const isOwner = currentUser?.id_user === ulasan?.id_user
 
   useEffect(() => {
     if (focus && !isUlasanLoading && inputRef.current) {
@@ -121,6 +148,16 @@ function UlasanDetailPage() {
         setBookmarkCount((prev) => prev - 1)
         toast.error("Gagal menambahkan ulasan ke bookmark")
       }
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteUlasanMutation.mutateAsync(ulasanId)
+      toast.success("Ulasan berhasil dihapus")
+      navigate({ to: '/a/home' })
+    } catch (error) {
+      toast.error("Gagal menghapus ulasan")
     }
   }
 
@@ -315,15 +352,71 @@ function UlasanDetailPage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
-                  <Flag className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-1">
+                {isOwner ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="gap-2 cursor-pointer">
+                        <Pencil className="h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)} className="h-8 w-8 rounded-full">
+                    <Flag className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
+
                 <ReportDialog
                   isOpen={isReportDialogOpen}
                   onClose={() => setIsReportDialogOpen(false)}
                   reviewId={ulasanId}
                   title="Laporkan Ulasan"
+                />
+
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Apakah Anda yakin?</DialogTitle>
+                      <DialogDescription>
+                        Tindakan ini tidak dapat dibatalkan. Ulasan Anda akan dihapus secara permanen.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                      <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Batal</Button>
+                      <Button variant="destructive" onClick={handleDelete} loading={deleteUlasanMutation.isPending}>
+                        Hapus
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <CreateReviewModal
+                  open={isEditDialogOpen}
+                  onOpenChange={setIsEditDialogOpen}
+                  editData={{
+                    id_review: ulasanId,
+                    judulUlasan: ulasan?.title || '',
+                    textUlasan: ulasan?.body || '',
+                    idDosen: ulasan?.id_lecturer || undefined,
+                    idMatkul: ulasan?.id_subject || undefined,
+                    isAnonymous: !!ulasan?.is_anonymous
+                  }}
+                  replyToId={ulasan?.id_reply ?? undefined}
+                  forumId={ulasan?.id_forum ?? undefined}
                 />
               </div>
             </div>
@@ -516,6 +609,7 @@ function UlasanDetailPage() {
                 isBookmarked={!!reply.is_bookmarked}
                 isAnonymous={reply.is_anonymous}
                 userId={reply.user?.id_user}
+                idReply={ulasanId}
               />
             ))
           ) : (

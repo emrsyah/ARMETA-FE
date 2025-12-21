@@ -270,6 +270,11 @@ function UlasanResultWrapper({ ulasan }: { ulasan: any }) {
             isAnonymous={ulasan.is_anonymous}
             subjectName={ulasan.subject_name}
             lecturerName={ulasan.lecturer_name}
+            idMatkul={ulasan.id_subject ?? undefined}
+            idDosen={ulasan.id_lecturer ?? undefined}
+            idReply={ulasan.id_reply}
+            idForum={ulasan.id_forum}
+            isReply={!!(ulasan.id_reply || ulasan.id_forum)}
         />
     )
 }

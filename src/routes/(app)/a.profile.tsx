@@ -207,6 +207,8 @@ function ContentList({ ulasan, forums, isLoading, emptyMessage }: ContentListPro
               id={item.id_review}
               subjectName={item.subject_name}
               lecturerName={item.lecturer_name}
+              idMatkul={item.id_subject ?? undefined}
+              idDosen={item.id_lecturer ?? undefined}
               isReply={!!(item.id_reply || item.id_forum)}
               userName={item.user?.name || 'User'}
               avatarFallback="U"

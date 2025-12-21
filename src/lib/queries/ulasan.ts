@@ -166,11 +166,12 @@ export function useEditUlasan() {
       const formData = new FormData()
 
       formData.append('id_review', data.id_review)
+      if (data.title) formData.append('title', data.title)
       if (data.body) formData.append('body', data.body)
-      if (data.isAnonymous) formData.append('isAnonymous', String(data.isAnonymous))
+      if (data.isAnonymous !== undefined) formData.append('isAnonymous', String(data.isAnonymous))
 
       if (data.files) {
-        data.files.forEach((file) => {
+        data.files.forEach((file: File) => {
           formData.append('files', file)
         })
       }
@@ -187,6 +188,26 @@ export function useEditUlasan() {
       queryClient.setQueryData(ulasanKeys.detail(data.id_review), data)
       // Invalidate lists to refetch
       queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
+    },
+  })
+}
+
+// Mutation: Delete ulasan
+export function useDeleteUlasan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id_review: string) => {
+      const response = await api.delete(ULASAN_ENDPOINTS.DELETE, {
+        data: { id_review },
+      })
+      return response.data
+    },
+    onSuccess: () => {
+      // Invalidate ulasan list to refetch
+      queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
+      // Also invalidate all to be safe
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
     },
   })
 }

@@ -85,6 +85,17 @@ export const createForumSchema = z.object({
 
 export type CreateForumInput = z.infer<typeof createForumSchema>
 
+// Edit forum request
+export const editForumSchema = z.object({
+  id_forum: z.string().uuid(),
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be at most 100 characters').optional(),
+  description: z.string().max(1000, 'Description must be at most 1000 characters').optional(),
+  files: z.array(z.instanceof(File)).optional(),
+  isAnonymous: z.boolean().optional(),
+})
+
+export type EditForumInput = z.infer<typeof editForumSchema>
+
 // Get forums by subject request
 export const getForumsBySubjectSchema = z.object({
   id_subject: z.string().uuid('Valid subject ID is required'),

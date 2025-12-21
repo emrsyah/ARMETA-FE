@@ -1,4 +1,4 @@
-import { Flag, MessageCircle, Bookmark, Heart, Ghost, FileText } from "lucide-react"
+import { Flag, MessageCircle, Bookmark, Heart, Ghost, FileText, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -8,11 +8,27 @@ import { Link } from "@tanstack/react-router"
 import { cn } from "@/lib/utils"
 import { ShareButton } from "../share-button"
 import type { Forum } from "@/lib/schemas/forum.schema"
-import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from "@/lib/queries/forum"
+import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum, useDeleteForum } from "@/lib/queries/forum"
 import { useState, useEffect } from "react"
 import { ReportDialog } from "../report-dialog"
 import ImageLightbox from "../image-lightbox"
 import { toast } from "sonner"
+import { useProfile } from "@/lib/queries"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "../ui/dialog"
+import CreateForumModal from "../create-forum-modal"
 
 export type ForumReply = {
     authorName: string
@@ -47,8 +63,10 @@ const getInitials = (name: string | null) => {
 
 const ForumCard = ({
     id_forum,
+    id_user,
     title,
     description,
+    id_subject,
     subject_name,
     user,
     created_at,
@@ -61,12 +79,18 @@ const ForumCard = ({
     isAnonymous = false,
     replies = [],
 }: ForumCardProps) => {
+    // Auth
+    const { data: currentUser } = useProfile()
+    const isOwner = currentUser?.id_user === id_user
+
     // Local state for optimistic updates
     const [localIsLiked, setLocalIsLiked] = useState(is_liked)
     const [localLikeCount, setLocalLikeCount] = useState(total_like)
     const [localIsBookmarked, setLocalIsBookmarked] = useState(is_bookmarked)
     const [localBookmarkCount, setLocalBookmarkCount] = useState(total_bookmark)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
     const [isExpanded, setIsExpanded] = useState(false)
 
@@ -83,6 +107,7 @@ const ForumCard = ({
     const unlikeMutation = useUnlikeForum()
     const bookmarkMutation = useBookmarkForum()
     const unbookmarkMutation = useUnbookmarkForum()
+    const deleteForumMutation = useDeleteForum()
 
     const handleLike = (e: React.MouseEvent) => {
         e.preventDefault()
@@ -146,6 +171,16 @@ const ForumCard = ({
         }
     }
 
+    const handleDelete = async () => {
+        try {
+            await deleteForumMutation.mutateAsync(id_forum)
+            toast.success("Forum berhasil dihapus")
+            setIsDeleteDialogOpen(false)
+        } catch (error) {
+            toast.error("Gagal menghapus forum")
+        }
+    }
+
     const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
     const getFileName = (url: string) => url.split('/').pop() || 'File';
 
@@ -157,15 +192,68 @@ const ForumCard = ({
                         <Badge variant={'secondary'}>{subject_name}</Badge>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
-                        <Flag className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center gap-1">
+                    {isOwner ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="gap-2 cursor-pointer">
+                                    <Pencil className="h-4 w-4" />
+                                    <span>Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => setIsDeleteDialogOpen(true)}
+                                    className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Hapus</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)} className="h-8 w-8 rounded-full">
+                            <Flag className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                    )}
+
                     <ReportDialog
                         isOpen={isReportDialogOpen}
                         onClose={() => setIsReportDialogOpen(false)}
                         forumId={id_forum}
                         title="Laporkan Forum"
+                    />
+
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Apakah Anda yakin?</DialogTitle>
+                                <DialogDescription>
+                                    Tindakan ini tidak dapat dibatalkan. Forum Anda akan dihapus secara permanen.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="gap-2">
+                                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Batal</Button>
+                                <Button variant="destructive" onClick={handleDelete} loading={deleteForumMutation.isPending}>
+                                    Hapus
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <CreateForumModal
+                        open={isEditDialogOpen}
+                        onOpenChange={setIsEditDialogOpen}
+                        editData={{
+                            id_forum,
+                            title,
+                            description: description ?? undefined,
+                            id_subject: id_subject ?? '',
+                            isAnonymous
+                        }}
                     />
                 </div>
             </CardHeader>

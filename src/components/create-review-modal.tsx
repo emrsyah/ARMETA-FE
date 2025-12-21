@@ -15,7 +15,7 @@ import { useMemo, useRef, useEffect } from "react"
 
 
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
-import { useCreateUlasan } from "@/lib/queries/ulasan"
+import { useCreateUlasan, useEditUlasan } from "@/lib/queries/ulasan"
 import { toast } from "sonner"
 import { Switch } from "./ui/switch"
 
@@ -24,16 +24,25 @@ type Props = {
   onOpenChange: (open: boolean) => void
   replyToId?: string
   forumId?: string
+  editData?: {
+    id_review: string;
+    judulUlasan: string;
+    textUlasan: string;
+    idDosen?: string;
+    idMatkul?: string;
+    isAnonymous: boolean;
+  }
 }
 
 
 
-const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) => {
+const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: lecturers = [] } = useLecturers()
   const { data: subjects = [] } = useSubjects()
   const createUlasanMutation = useCreateUlasan()
+  const editUlasanMutation = useEditUlasan()
 
   const dosenList = useMemo(() =>
     lecturers.map((lecturer) => ({
@@ -60,16 +69,27 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
   // Reset form when modal opens/closes or props change
   useEffect(() => {
     if (open) {
-      form.reset({
-        judulUlasan: '',
-        textUlasan: '',
-        files: [],
-        idDosen: undefined,
-        idMatkul: undefined,
-        isAnonymous: false,
-      })
+      if (editData) {
+        form.reset({
+          judulUlasan: editData.judulUlasan || ((replyToId || forumId) ? 'reply' : ''),
+          textUlasan: editData.textUlasan,
+          files: [],
+          idDosen: editData.idDosen,
+          idMatkul: editData.idMatkul,
+          isAnonymous: editData.isAnonymous,
+        })
+      } else {
+        form.reset({
+          judulUlasan: (replyToId || forumId) ? 'reply' : '',
+          textUlasan: '',
+          files: [],
+          idDosen: undefined,
+          idMatkul: undefined,
+          isAnonymous: false,
+        })
+      }
     }
-  }, [open, replyToId, forumId, form])
+  }, [open, editData, replyToId, forumId, form])
 
   const files = form.watch('files') || []
 
@@ -106,28 +126,47 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
         return
       }
 
-      const isReply = !!(replyToId || forumId)
-      if (!isReply && !data.idDosen && !data.idMatkul) {
-        toast.error('Pilih setidaknya satu Dosen atau Mata Kuliah')
-        return
-      }
+      if (editData) {
+        // Handle Edit
+        await editUlasanMutation.mutateAsync({
+          id_review: editData.id_review,
+          title: data.judulUlasan,
+          body: data.textUlasan,
+          files: data.files,
+          isAnonymous: data.isAnonymous
+        })
+        toast.success('Ulasan berhasil diperbarui')
+      } else {
+        // Handle Create
+        const isReply = !!(replyToId || forumId)
+        if (!isReply && !data.idDosen && !data.idMatkul) {
+          toast.error('Pilih setidaknya satu Dosen atau Mata Kuliah')
+          return
+        }
 
-      await createUlasanMutation.mutateAsync({
-        judulUlasan: data.judulUlasan,
-        textUlasan: data.textUlasan,
-        idDosen: data.idDosen,
-        idMatkul: data.idMatkul,
-        idReply: replyToId,
-        idForum: forumId,
-        files: data.files,
-        isAnonymous: data.isAnonymous,
-      })
+        await createUlasanMutation.mutateAsync({
+          judulUlasan: data.judulUlasan,
+          textUlasan: data.textUlasan,
+          idDosen: data.idDosen,
+          idMatkul: data.idMatkul,
+          idReply: replyToId,
+          idForum: forumId,
+          files: data.files,
+          isAnonymous: data.isAnonymous,
+        })
+        toast.success('Ulasan berhasil dikirim')
+      }
       form.reset()
       onOpenChange(false)
     } catch (error) {
-      console.error('Failed to create ulasan:', error)
+      console.error('Failed to submit ulasan:', error)
+      toast.error(editData ? 'Gagal memperbarui ulasan' : 'Gagal mengirim ulasan / balasan')
     }
   }
+
+  const isPending = createUlasanMutation.isPending || editUlasanMutation.isPending
+  const isReply = !!(replyToId || forumId)
+  const isEdit = !!editData
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,13 +181,15 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
           }}
         >
           <DialogHeader className="mb-4">
-            <DialogTitle>{(replyToId || forumId) ? 'Buat Balasan' : 'Buat Ulasan'}</DialogTitle>
+            <DialogTitle>
+              {isEdit ? 'Edit Ulasan' : isReply ? 'Buat Balasan' : 'Buat Ulasan'}
+            </DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Select Dosen/Matkul - Hide if replying */}
-              {!replyToId && !forumId && (
+              {/* Select Dosen/Matkul - Hide if replying or editing */}
+              {!isReply && !isEdit && (
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     name="idMatkul"
@@ -189,31 +230,33 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                 </div>
               )}
 
-              {/* Title */}
-              <FormField
-                name="judulUlasan"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Judul {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          placeholder={`Masukkan judul ${(replyToId || forumId) ? 'balasan' : 'ulasan'}...`}
-                          autoFocus
-                          maxLength={100}
-                          className="pr-12"
-                        />
-                        <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
-                          {(field.value?.length || 0)}/100
+              {/* Title - Hide if replying or editing a reply */}
+              {!isReply && (
+                <FormField
+                  name="judulUlasan"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Judul {isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            placeholder={`Masukkan judul ${isReply ? 'balasan' : 'ulasan'}...`}
+                            autoFocus
+                            maxLength={100}
+                            className="pr-12"
+                          />
+                          <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                            {(field.value?.length || 0)}/100
+                          </div>
                         </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Review Content */}
               <FormField
@@ -221,12 +264,12 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Isi {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
+                    <FormLabel>Isi {isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Textarea
                           {...field}
-                          placeholder={`Tulis ${(replyToId || forumId) ? 'balasan' : 'ulasan'} Anda di sini...`}
+                          placeholder={`Tulis ${isReply ? 'balasan' : 'ulasan'} Anda di sini...`}
                           className="min-h-[120px] resize-none pb-6 pr-12"
                           maxLength={1000}
                         />
@@ -307,8 +350,8 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
 
                 {/* Submit Buttons */}
                 <div className="flex gap-2">
-                  <Button size={'lg'} type="submit" loading={createUlasanMutation.isPending}>
-                    Kirim
+                  <Button size={'lg'} type="submit" loading={isPending}>
+                    {isEdit ? 'Perbarui' : 'Kirim'}
                   </Button>
                 </div>
               </div>

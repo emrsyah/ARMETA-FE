@@ -1,8 +1,8 @@
-import { Bookmark, Flag, Heart, MessageCircle, FileText, Ghost } from "lucide-react"
+import { Bookmark, Flag, Heart, MessageCircle, FileText, Ghost, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
-import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark } from "@/lib/queries/ulasan"
+import { useLikeUlasan, useUnlikeUlasan, useBookmarkUlasan, useRemoveBookmark, useDeleteUlasan } from "@/lib/queries/ulasan"
 import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { Badge } from "../ui/badge"
@@ -11,6 +11,22 @@ import { ReportDialog } from "../report-dialog"
 import { cn } from "@/lib/utils"
 import ImageLightbox from "../image-lightbox"
 import { toast } from "sonner"
+import { useProfile } from "@/lib/queries"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "../ui/dialog"
+import CreateReviewModal from "../create-review-modal"
 
 type Props = {
     id: string;
@@ -28,6 +44,8 @@ type Props = {
     isReply?: boolean;
     subjectName?: string;
     lecturerName?: string;
+    idMatkul?: string;
+    idDosen?: string;
     isAnonymous?: boolean;
     idReply?: string | null;
     idForum?: string | null;
@@ -51,17 +69,25 @@ const ReviewCard = ({
     isReply = false,
     subjectName,
     lecturerName,
+    idMatkul,
+    idDosen,
     isAnonymous = false,
     idReply = null,
     idForum = null,
     parentUserName = null,
     userId,
 }: Props) => {
+    // Auth
+    const { data: currentUser } = useProfile()
+    const isOwner = currentUser?.id_user === userId
+
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
     const [currentLikeCount, setCurrentLikeCount] = useState(likeCount)
     const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
     const [isExpanded, setIsExpanded] = useState(false)
 
@@ -76,6 +102,7 @@ const ReviewCard = ({
     const unlikeMutation = useUnlikeUlasan()
     const bookmarkMutation = useBookmarkUlasan()
     const removeBookmarkMutation = useRemoveBookmark()
+    const deleteUlasanMutation = useDeleteUlasan()
 
     const handleLike = async () => {
         if (liked) {
@@ -129,6 +156,16 @@ const ReviewCard = ({
         }
     }
 
+    const handleDelete = async () => {
+        try {
+            await deleteUlasanMutation.mutateAsync(id)
+            toast.success("Ulasan berhasil dihapus")
+            setIsDeleteDialogOpen(false)
+        } catch (error) {
+            toast.error("Gagal menghapus ulasan")
+        }
+    }
+
     const isImage = (file: string) => /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(file);
     const getFileName = (url: string) => url.split('/').pop() || 'File';
 
@@ -163,15 +200,71 @@ const ReviewCard = ({
                         </div>
                     )}
                 </CardTitle>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
-                        <Flag className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center gap-1">
+                    {isOwner ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="gap-2 cursor-pointer">
+                                    <Pencil className="h-4 w-4" />
+                                    <span>Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => setIsDeleteDialogOpen(true)}
+                                    className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Hapus</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)} className="h-8 w-8 rounded-full">
+                            <Flag className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                    )}
+
                     <ReportDialog
                         isOpen={isReportDialogOpen}
                         onClose={() => setIsReportDialogOpen(false)}
                         reviewId={id}
                         title="Laporkan Ulasan"
+                    />
+
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Apakah Anda yakin?</DialogTitle>
+                                <DialogDescription>
+                                    Tindakan ini tidak dapat dibatalkan. Ulasan Anda akan dihapus secara permanen.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="gap-2">
+                                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Batal</Button>
+                                <Button variant="destructive" onClick={handleDelete} loading={deleteUlasanMutation.isPending}>
+                                    Hapus
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <CreateReviewModal
+                        open={isEditDialogOpen}
+                        onOpenChange={setIsEditDialogOpen}
+                        editData={{
+                            id_review: id,
+                            judulUlasan: title,
+                            textUlasan: content,
+                            idDosen,
+                            idMatkul,
+                            isAnonymous
+                        }}
+                        replyToId={idReply ?? undefined}
+                        forumId={idForum ?? undefined}
                     />
                 </div>
             </CardHeader>

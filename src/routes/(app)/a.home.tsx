@@ -105,6 +105,8 @@ function HomePage() {
                   id={ulasan.id_review}
                   subjectName={ulasan.subject_name}
                   lecturerName={ulasan.lecturer_name}
+                  idMatkul={ulasan.id_subject ?? undefined}
+                  idDosen={ulasan.id_lecturer ?? undefined}
                   isReply={!!(ulasan.id_reply || ulasan.id_forum)}
                   userName={ulasan.user?.name || 'User'}
                   avatarFallback="U"

@@ -31,10 +31,13 @@ export const ULASAN_ENDPOINTS = {
   GET_LIKED: '/api/ulasan/likeUlasan',
   BOOKMARK: '/api/ulasan/bookmarkUlasan',
   GET_BOOKMARKED: '/api/ulasan/bookmarkUlasan',
+  DELETE: '/api/ulasan/deleteUlasan',
 } as const
 
 export const FORUM_ENDPOINTS = {
   CREATE: '/api/forum/createForum',
+  EDIT: '/api/forum/editForum',
+  DELETE: '/api/forum/deleteForum',
   GET_ALL: '/api/forum/getAllForum',
   GET_BY_ID: '/api/forum/getForumId',
   GET_BY_SUBJECT: '/api/forum/getForumSubject',

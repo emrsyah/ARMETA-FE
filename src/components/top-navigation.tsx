@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Search, LogOut, User, MessageSquare, Home, Layout, History, FileText } from 'lucide-react'
+import { Search, LogOut, User, MessageSquare, Sparkles, LayoutDashboard, History } from 'lucide-react'
 import { useProfile, useLogout } from '@/lib/queries'
 import { useNavigate } from '@tanstack/react-router'
 import { Skeleton } from './ui/skeleton'
@@ -128,29 +128,20 @@ export function TopNavigation() {
 
             <CommandGroup heading="Navigasi Cepat">
               <CommandItem onSelect={() => { setOpen(false); navigate({ to: '/a/home' }) }}>
-                <Home className="mr-2 h-4 w-4" />
+                <LayoutDashboard className="mr-2 h-4 w-4" />
                 Beranda
               </CommandItem>
               <CommandItem onSelect={() => { setOpen(false); navigate({ to: '/a/forum' as any }) }}>
-                <Layout className="mr-2 h-4 w-4" />
+                <MessageSquare className="mr-2 h-4 w-4" />
                 Forum Diskusi
+              </CommandItem>
+              <CommandItem onSelect={() => { setOpen(false); navigate({ to: '/a/arme' as any }) }}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                ARME - AI Chatbot
               </CommandItem>
               <CommandItem onSelect={() => { setOpen(false); navigate({ to: '/a/profile' as any }) }}>
                 <User className="mr-2 h-4 w-4" />
                 Profil Saya
-              </CommandItem>
-            </CommandGroup>
-
-            <CommandSeparator />
-
-            <CommandGroup heading="Kategori">
-              <CommandItem onSelect={() => handleSearch('ulasan')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Cari Ulasan
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearch('forum')}>
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Cari Forum
               </CommandItem>
             </CommandGroup>
 
