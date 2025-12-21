@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useForumDetail, useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } from '@/lib/queries/forum'
-import { useCreateUlasan } from '@/lib/queries/ulasan'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +17,7 @@ import {
   Send,
   Ghost,
 } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import ReviewCard from '@/components/card/review-card'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
@@ -26,6 +25,7 @@ import { ReportDialog } from '@/components/report-dialog'
 import { FileText, ImageIcon } from 'lucide-react'
 import ImageLightbox from '@/components/image-lightbox'
 import { toast } from 'sonner'
+import CreateReviewModal from '@/components/create-review-modal'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -51,9 +51,6 @@ function ForumDetailPage() {
   const { forumId } = Route.useParams()
   const { data: forum, isLoading: isForumLoading, isError } = useForumDetail(forumId)
 
-  const [replyText, setReplyText] = useState('')
-  const createUlasanMutation = useCreateUlasan()
-
   // Local state for optimistic updates
   const [localIsLiked, setLocalIsLiked] = useState(false)
   const [localLikeCount, setLocalLikeCount] = useState(0)
@@ -61,6 +58,7 @@ function ForumDetailPage() {
   const [localBookmarkCount, setLocalBookmarkCount] = useState(0)
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Sync with forum data when it changes
   useEffect(() => {
@@ -73,11 +71,10 @@ function ForumDetailPage() {
   }, [forum])
 
   const { focus } = Route.useSearch()
-  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (focus && !isForumLoading && inputRef.current) {
-      inputRef.current.focus()
+    if (focus && !isForumLoading) {
+      setIsCreateModalOpen(true)
     }
   }, [focus, isForumLoading])
 
@@ -139,21 +136,7 @@ function ForumDetailPage() {
     }
   }
 
-  const handleSubmitReply = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!replyText.trim() || createUlasanMutation.isPending) return
-
-    try {
-      await createUlasanMutation.mutateAsync({
-        judulUlasan: 'reply',
-        textUlasan: replyText,
-        idForum: forumId,
-      })
-      setReplyText('')
-    } catch (error) {
-      console.error('Failed to submit reply:', error)
-    }
-  }
+  // Removed handleSubmitReply as we're using CreateReviewModal
 
   if (isForumLoading) {
     return <ForumDetailSkeleton />
@@ -218,7 +201,7 @@ function ForumDetailPage() {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Kembali ke Forum
+          Kembali ke Daftar Forum
         </Link>
 
         {/* Forum Detail Card */}
@@ -244,7 +227,7 @@ function ForumDetailPage() {
                   isOpen={isReportDialogOpen}
                   onClose={() => setIsReportDialogOpen(false)}
                   forumId={forumId}
-                  title="Laporkan Forum"
+                  title="Laporkan Diskusi"
                 />
               </div>
             </div>
@@ -371,7 +354,7 @@ function ForumDetailPage() {
             <div className="flex items-center gap-2 w-full">
               <Button variant="ghost" size="sm" className="gap-2">
                 <MessageCircle className="h-4 w-4" />
-                <span>{forum?.total_reply ?? 0} Balasan</span>
+                <span>{forum?.total_reply ?? 0} Ulasan</span>
               </Button>
               <Button variant="ghost" size="sm" className="gap-2" onClick={handleBookmark}>
                 <Bookmark className={cn("h-4 w-4", localIsBookmarked && "fill-current text-yellow-500")} />
@@ -390,53 +373,47 @@ function ForumDetailPage() {
           </CardFooter>
         </Card>
 
-        {/* Reply Input Form */}
+        {/* Review Input Trigger */}
+        <CreateReviewModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          forumId={forumId}
+        />
+
         <motion.div
-          layoutId="create-forum-reply-input"
+          layoutId="create-review-input"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="cursor-pointer"
           transition={{
             type: 'spring',
             stiffness: 350,
             damping: 30,
           }}
         >
-          <Card className="overflow-hidden border-primary/20 shadow-sm">
+          <Card className="overflow-hidden border-primary/20 shadow-sm hover:border-primary/40 transition-colors">
             <CardContent className="py-4">
-              <form onSubmit={handleSubmitReply} className="flex items-center gap-3">
-                <div className="flex-1 relative">
-                  <Input
-                    ref={inputRef}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Tulis balasan untuk diskusi ini..."
-                    className="w-full bg-gray-50 focus-visible:ring-primary/20 border-gray-200 pr-16"
-                    disabled={createUlasanMutation.isPending}
-                    maxLength={300}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
-                    {replyText.length}/300
-                  </div>
-                </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  readOnly
+                  placeholder="Tulis ulasan untuk diskusi ini..."
+                  className="w-full bg-gray-50 border-gray-200 cursor-pointer pointer-events-none"
+                />
                 <Button
-                  type="submit"
                   size="icon"
-                  className={cn(
-                    "shrink-0 transition-all",
-                    replyText.trim() ? "bg-primary text-white" : "bg-gray-100 text-gray-400"
-                  )}
-                  disabled={!replyText.trim() || createUlasanMutation.isPending}
+                  className="shrink-0 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                 >
-                  <Send className={cn("h-4 w-4", createUlasanMutation.isPending && "animate-pulse")} />
+                  <Send className="h-4 w-4" />
                 </Button>
-              </form>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Replies Section */}
+        {/* Reviews Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">
-              Balasan ({forum?.reviews?.length || 0})
+              Ulasan ({forum?.reviews?.length || 0})
             </h2>
           </div>
 
@@ -455,7 +432,7 @@ function ForumDetailPage() {
                 commentCount={reply.total_reply || 0}
                 bookmarkCount={reply.total_bookmark || 0}
                 likeCount={reply.total_like || 0}
-                isReply={true}
+                isReply={false}
                 userId={reply.user?.id_user!}
                 idForum={forumId}
               />
@@ -465,10 +442,10 @@ function ForumDetailPage() {
               <CardContent className="py-12 text-center">
                 <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
-                  Belum ada balasan untuk forum ini.
+                  Belum ada ulasan untuk diskusi ini.
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Jadilah yang pertama memulai diskusi!
+                  Jadilah yang pertama memberikan ulasan!
                 </p>
               </CardContent>
             </Card>

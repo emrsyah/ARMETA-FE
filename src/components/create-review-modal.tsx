@@ -71,7 +71,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
     if (open) {
       if (editData) {
         form.reset({
-          judulUlasan: editData.judulUlasan || ((replyToId || forumId) ? 'reply' : ''),
+          judulUlasan: editData.judulUlasan || (replyToId ? 'reply' : ''),
           textUlasan: editData.textUlasan,
           files: [],
           idDosen: editData.idDosen,
@@ -80,7 +80,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
         })
       } else {
         form.reset({
-          judulUlasan: (replyToId || forumId) ? 'reply' : '',
+          judulUlasan: replyToId ? 'reply' : '',
           textUlasan: '',
           files: [],
           idDosen: undefined,
@@ -230,8 +230,8 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
                 </div>
               )}
 
-              {/* Title - Hide if replying or editing a reply */}
-              {!isReply && (
+              {/* Title - Hide if replying to a review, but show if for forum or root ulasan */}
+              {!replyToId && (
                 <FormField
                   name="judulUlasan"
                   control={form.control}

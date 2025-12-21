@@ -33,8 +33,9 @@ function ForumPage() {
       ...(dateRange && { from: dateRange.from, to: dateRange.to }),
       ...(search.sortBy && { sortBy: search.sortBy as GetAllForumInput['sortBy'] }),
       ...(search.order && { order: search.order as GetAllForumInput['order'] }),
+      ...(search.id_subject && { id_subject: search.id_subject }),
     }
-  }, [search.filter, search.sortBy, search.order])
+  }, [search.filter, search.sortBy, search.order, search.id_subject])
 
   // Use unified infinite query with optional filters
   const {

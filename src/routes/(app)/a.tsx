@@ -14,6 +14,8 @@ export type FilterSearch = {
   filter?: FilterType
   sortBy?: SortByType
   order?: OrderType
+  id_lecturer?: string
+  id_subject?: string
 }
 
 export const Route = createFileRoute('/(app)/a')({
@@ -41,24 +43,19 @@ export const Route = createFileRoute('/(app)/a')({
       order: ['asc', 'desc'].includes(search.order as string)
         ? (search.order as OrderType)
         : undefined,
+      id_lecturer: typeof search.id_lecturer === 'string' ? search.id_lecturer : undefined,
+      id_subject: typeof search.id_subject === 'string' ? search.id_subject : undefined,
     }
   },
   component: ALayout,
 })
 
 function ALayout() {
-  const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
-  const isDetailForumPage = useMatch({ from: '/(app)/a/forum/$forumId', shouldThrow: false })
-  const isDetailUlasanPage = useMatch({ from: '/(app)/a/ulasan/$ulasanId', shouldThrow: false })
-  const isProfilePage = useMatch({ from: '/(app)/a/profile', shouldThrow: false })
-  const isUserDetailPage = useMatch({ from: '/(app)/a/u/$userId', shouldThrow: false })
   const isForumPage = useMatch({ from: '/(app)/a/forum/', shouldThrow: false })
   const isReviewPage = useMatch({ from: '/(app)/a/home', shouldThrow: false })
 
   // Determine current page type for sidebar filter
   const currentPage = isForumPage ? 'forum' : 'ulasan'
-
-  const showSidebarFilter = isForumPage || isReviewPage
 
   return (
     <SidebarProvider>
@@ -70,7 +67,7 @@ function ALayout() {
             <div className='flex-1 grow min-w-0'>
               <Outlet />
             </div>
-            {showSidebarFilter && <SidebarFilter currentPage={currentPage} />}
+            {(isForumPage || isReviewPage) && <SidebarFilter currentPage={currentPage} />}
           </div>
         </div>
       </SidebarInset>

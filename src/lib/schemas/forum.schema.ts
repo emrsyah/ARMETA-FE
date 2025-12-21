@@ -130,6 +130,7 @@ export const getAllForumSchema = z.object({
   sortBy: forumSortByEnum.optional(),
   order: forumSortOrderEnum.optional(),
   id_user: z.string().uuid().optional(),
+  id_subject: z.string().uuid().optional(),
 })
 
 export type GetAllForumInput = z.infer<typeof getAllForumSchema>

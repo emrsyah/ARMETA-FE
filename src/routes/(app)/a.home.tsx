@@ -37,6 +37,8 @@ function HomePage() {
     to: dateRange?.to,
     sortBy: search.sortBy,
     order: search.order,
+    id_lecturer: search.id_lecturer,
+    id_subject: search.id_subject,
   })
 
   // Flatten all pages of ulasan

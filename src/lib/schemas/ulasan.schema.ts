@@ -134,6 +134,8 @@ export const getAllUlasanSchema = z.object({
   sortBy: sortByEnum.optional(),
   order: sortOrderEnum.optional(),
   id_user: z.string().uuid().optional(),
+  id_lecturer: z.string().uuid().optional(),
+  id_subject: z.string().uuid().optional(),
 })
 
 export type GetAllUlasanInput = z.infer<typeof getAllUlasanSchema>
