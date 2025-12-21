@@ -241,35 +241,74 @@ function UlasanDetailPage() {
           <CardHeader className="border-b">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={ulasan?.is_anonymous ? undefined : ulasan?.user?.image || ""} />
-                  <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 text-primary font-medium">
-                    {ulasan?.is_anonymous ? "?" : ulasan?.user?.name?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold flex items-center gap-1.5">
-                    {ulasan?.is_anonymous ? "Anonim" : ulasan?.user?.name}
-                    {ulasan?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span>
-                      {ulasan?.created_at
-                        ? new Date(ulasan.created_at).toLocaleDateString(
-                          'id-ID',
-                          {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          }
-                        )
-                        : 'Tanggal tidak tersedia'}
-                    </span>
+                {!ulasan?.is_anonymous && ulasan?.user?.id_user ? (
+                  <Link
+                    to="/a/u/$userId"
+                    params={{ userId: ulasan.user.id_user }}
+                    className={cn("flex items-center gap-3 cursor-pointer group")}
+                  >
+                    <Avatar className="h-12 w-12 group-hover:ring-2 ring-primary/20 transition-all">
+                      <AvatarImage src={ulasan?.user?.image || ""} />
+                      <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 text-primary font-medium">
+                        {ulasan?.user?.name?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold flex items-center gap-1.5 group-hover:underline">
+                        {ulasan?.user?.name}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {ulasan?.created_at
+                            ? new Date(ulasan.created_at).toLocaleDateString(
+                              'id-ID',
+                              {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )
+                            : 'Tanggal tidak tersedia'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={undefined} />
+                      <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 text-primary font-medium">
+                        {ulasan?.is_anonymous ? "?" : ulasan?.user?.name?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold flex items-center gap-1.5">
+                        {ulasan?.is_anonymous ? "Anonim" : ulasan?.user?.name}
+                        {ulasan?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {ulasan?.created_at
+                            ? new Date(ulasan.created_at).toLocaleDateString(
+                              'id-ID',
+                              {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )
+                            : 'Tanggal tidak tersedia'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>
@@ -465,6 +504,7 @@ function UlasanDetailPage() {
                 isLiked={!!reply.is_liked}
                 isBookmarked={!!reply.is_bookmarked}
                 isAnonymous={reply.is_anonymous}
+                userId={reply.user?.id_user}
               />
             ))
           ) : (
@@ -488,32 +528,67 @@ function UlasanDetailPage() {
 
 function ParentPreview({ source }: { source: any }) {
   return (
-    <div className="flex gap-4">
-      <div className="relative">
-        <Avatar className="h-12 w-12 border-2 border-white shadow-sm group-hover:ring-4 ring-primary/10 transition-all duration-300">
-          <AvatarImage src={source.user.image || ""} />
-          <AvatarFallback className="bg-gray-100 text-gray-500 font-medium">
-            {source.user.name?.charAt(0).toUpperCase() || "?"}
-          </AvatarFallback>
-        </Avatar>
-      </div>
-      <div className="flex-1 py-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">
-            {source.user.name}
-          </span>
-          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded uppercase tracking-wider font-bold">
-            {source.type === 'review' ? 'Ulasan' : 'Forum'}
-          </span>
-          <span className="text-xs text-gray-400">
-            {new Date(source.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-          </span>
+    <>
+      {!source.is_anonymous && source.user.id_user ? (
+        <Link
+          to="/a/u/$userId"
+          params={{ userId: source.user.id_user }}
+          className="flex gap-4 cursor-pointer group"
+        >
+          <div className="relative">
+            <Avatar className="h-12 w-12 border-2 border-white shadow-sm group-hover:ring-4 ring-primary/10 transition-all duration-300">
+              <AvatarImage src={source.user.image || ""} />
+              <AvatarFallback className="bg-gray-100 text-gray-500 font-medium">
+                {source.user.name?.charAt(0).toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex-1 py-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">
+                {source.user.name}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded uppercase tracking-wider font-bold">
+                {source.type === 'review' ? 'Ulasan' : 'Forum'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {new Date(source.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+            <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed italic">
+              "{source.body || source.title}"
+            </p>
+          </div>
+        </Link>
+      ) : (
+        <div className="flex gap-4">
+          <div className="relative">
+            <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-all duration-300">
+              <AvatarImage src={undefined} />
+              <AvatarFallback className="bg-gray-100 text-gray-500 font-medium">
+                {source.is_anonymous ? "?" : source.user.name?.charAt(0).toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex-1 py-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-bold text-gray-900">
+                {source.is_anonymous ? "Anonim" : source.user.name}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded uppercase tracking-wider font-bold">
+                {source.type === 'review' ? 'Ulasan' : 'Forum'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {new Date(source.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+            <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed italic">
+              "{source.body || source.title}"
+            </p>
+          </div>
         </div>
-        <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed italic">
-          "{source.body || source.title}"
-        </p>
-      </div>
-    </div>
+      )}
+    </>
   )
 }
 

@@ -116,6 +116,11 @@ function HomePage() {
                   likeCount={ulasan.total_likes ?? 0}
                   isLiked={!!ulasan.is_liked}
                   isBookmarked={!!ulasan.is_bookmarked}
+                  idReply={ulasan.id_reply}
+                  idForum={ulasan.id_forum}
+                  userId={ulasan.user?.id_user}
+                  parentUserName={ulasan.parent_source?.user?.name}
+                  isAnonymous={ulasan.is_anonymous}
                 />
               ))}
             </div>

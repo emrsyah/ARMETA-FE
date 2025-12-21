@@ -303,29 +303,58 @@ function ForumDetailPage() {
 
             {/* Author & Meta */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={forum?.is_anonymous ? undefined : forum?.user?.image ?? undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {forum?.is_anonymous ? "?" : getInitials(forum?.user?.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium text-sm flex items-center gap-1.5">
-                    {forum?.is_anonymous ? "Anonim" : forum?.user?.name ?? 'Anonymous'}
-                    {forum?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {forum?.created_at
-                      ? new Date(forum.created_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                      : 'Tanggal tidak tersedia'}
-                  </p>
+              {!forum?.is_anonymous && forum?.user?.id_user ? (
+                <Link
+                  to="/a/u/$userId"
+                  params={{ userId: forum.user.id_user }}
+                  className="flex items-center gap-3 cursor-pointer group transition-all"
+                >
+                  <Avatar className="h-10 w-10 group-hover:ring-2 ring-primary/20 transition-all">
+                    <AvatarImage src={forum?.user?.image ?? undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {getInitials(forum?.user?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm flex items-center gap-1.5 group-hover:underline">
+                      {forum?.user?.name ?? 'Anonymous'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {forum?.created_at
+                        ? new Date(forum.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                        : 'Tanggal tidak tersedia'}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {forum?.is_anonymous ? "?" : getInitials(forum?.user?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm flex items-center gap-1.5">
+                      {forum?.is_anonymous ? "Anonim" : forum?.user?.name ?? 'Anonymous'}
+                      {forum?.is_anonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {forum?.created_at
+                        ? new Date(forum.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                        : 'Tanggal tidak tersedia'}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </CardContent>
 
@@ -412,6 +441,7 @@ function ForumDetailPage() {
                 bookmarkCount={reply.total_bookmark || 0}
                 likeCount={reply.total_like || 0}
                 isReply={true}
+                userId={reply.user?.id_user!}
               />
             ))
           ) : (

@@ -21,7 +21,7 @@ export const ulasanKeys = {
   detail: (id: string) => [...ulasanKeys.all, 'detail', id] as const,
   searchVector: (query: string) => [...ulasanKeys.all, 'search-vector', query] as const,
   searchText: (query: string) => [...ulasanKeys.all, 'search-text', query] as const,
-  liked: () => [...ulasanKeys.all, 'liked'] as const,
+  liked: (userId?: string) => [...ulasanKeys.all, 'liked', userId] as const,
   bookmarked: () => [...ulasanKeys.all, 'bookmarked'] as const,
 }
 
@@ -37,11 +37,13 @@ export const ulasanListQueryOptions = (filters?: GetAllUlasanInput) =>
     },
   })
 
-export const likedUlasanQueryOptions = () =>
+export const likedUlasanQueryOptions = (userId?: string) =>
   queryOptions({
-    queryKey: ulasanKeys.liked(),
+    queryKey: ulasanKeys.liked(userId),
     queryFn: async () => {
-      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_LIKED)
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_LIKED, {
+        params: userId ? { id_user: userId } : undefined,
+      })
       return response.data.data
     },
   })
@@ -93,8 +95,8 @@ export function useInfiniteUlasanList(filters?: GetAllUlasanInput) {
 }
 
 // Query: Get liked ulasan
-export function useLikedUlasan() {
-  return useQuery(likedUlasanQueryOptions())
+export function useLikedUlasan(userId?: string) {
+  return useQuery(likedUlasanQueryOptions(userId))
 }
 
 // Query: Get bookmarked ulasan

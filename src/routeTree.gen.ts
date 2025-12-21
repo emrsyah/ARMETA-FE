@@ -19,6 +19,7 @@ import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
 import { Route as appAArmeRouteImport } from './routes/(app)/a.arme'
 import { Route as appAForumIndexRouteImport } from './routes/(app)/a.forum.index'
 import { Route as appAUlasanUlasanIdRouteImport } from './routes/(app)/a.ulasan.$ulasanId'
+import { Route as appAUUserIdRouteImport } from './routes/(app)/a.u.$userId'
 import { Route as appAForumForumIdRouteImport } from './routes/(app)/a.forum.$forumId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const appAUlasanUlasanIdRoute = appAUlasanUlasanIdRouteImport.update({
   path: '/ulasan/$ulasanId',
   getParentRoute: () => appARoute,
 } as any)
+const appAUUserIdRoute = appAUUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
+  getParentRoute: () => appARoute,
+} as any)
 const appAForumForumIdRoute = appAForumForumIdRouteImport.update({
   id: '/forum/$forumId',
   path: '/forum/$forumId',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/a/search': typeof appASearchRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/a/u/$userId': typeof appAUUserIdRoute
   '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
   '/a/forum': typeof appAForumIndexRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/a/search': typeof appASearchRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/a/u/$userId': typeof appAUUserIdRoute
   '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
   '/a/forum': typeof appAForumIndexRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/(app)/a/search': typeof appASearchRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/(app)/a/forum/$forumId': typeof appAForumForumIdRoute
+  '/(app)/a/u/$userId': typeof appAUUserIdRoute
   '/(app)/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
   '/(app)/a/forum/': typeof appAForumIndexRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/a/search'
     | '/auth/google/callback'
     | '/a/forum/$forumId'
+    | '/a/u/$userId'
     | '/a/ulasan/$ulasanId'
     | '/a/forum'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/a/search'
     | '/auth/google/callback'
     | '/a/forum/$forumId'
+    | '/a/u/$userId'
     | '/a/ulasan/$ulasanId'
     | '/a/forum'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/(app)/a/search'
     | '/auth/google/callback'
     | '/(app)/a/forum/$forumId'
+    | '/(app)/a/u/$userId'
     | '/(app)/a/ulasan/$ulasanId'
     | '/(app)/a/forum/'
   fileRoutesById: FileRoutesById
@@ -238,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAUlasanUlasanIdRouteImport
       parentRoute: typeof appARoute
     }
+    '/(app)/a/u/$userId': {
+      id: '/(app)/a/u/$userId'
+      path: '/u/$userId'
+      fullPath: '/a/u/$userId'
+      preLoaderRoute: typeof appAUUserIdRouteImport
+      parentRoute: typeof appARoute
+    }
     '/(app)/a/forum/$forumId': {
       id: '/(app)/a/forum/$forumId'
       path: '/forum/$forumId'
@@ -254,6 +273,7 @@ interface appARouteChildren {
   appAProfileRoute: typeof appAProfileRoute
   appASearchRoute: typeof appASearchRoute
   appAForumForumIdRoute: typeof appAForumForumIdRoute
+  appAUUserIdRoute: typeof appAUUserIdRoute
   appAUlasanUlasanIdRoute: typeof appAUlasanUlasanIdRoute
   appAForumIndexRoute: typeof appAForumIndexRoute
 }
@@ -264,6 +284,7 @@ const appARouteChildren: appARouteChildren = {
   appAProfileRoute: appAProfileRoute,
   appASearchRoute: appASearchRoute,
   appAForumForumIdRoute: appAForumForumIdRoute,
+  appAUUserIdRoute: appAUUserIdRoute,
   appAUlasanUlasanIdRoute: appAUlasanUlasanIdRoute,
   appAForumIndexRoute: appAForumIndexRoute,
 }

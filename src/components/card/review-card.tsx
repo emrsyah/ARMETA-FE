@@ -31,6 +31,7 @@ type Props = {
     idReply?: string | null;
     idForum?: string | null;
     parentUserName?: string | null;
+    userId?: string;
 }
 
 const ReviewCard = ({
@@ -53,6 +54,7 @@ const ReviewCard = ({
     idReply = null,
     idForum = null,
     parentUserName = null,
+    userId,
 }: Props) => {
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
@@ -127,15 +129,33 @@ const ReviewCard = ({
     return (
         <Card>
             <CardHeader className="flex items-center justify-between w-full">
-                <CardTitle className="flex items-center gap-3 cursor-pointer group">
-                    <Avatar>
-                        <AvatarImage src={isAnonymous ? undefined : avatarUrl} />
-                        <AvatarFallback>{isAnonymous ? "?" : avatarFallback}</AvatarFallback>
-                    </Avatar>
-                    <span className="transition-all group-hover:underline flex items-center gap-1.5">
-                        {isAnonymous ? "Anonim" : userName}
-                        {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
-                    </span>
+                <CardTitle className="flex items-center gap-3 group">
+                    {!isAnonymous && userId ? (
+                        <Link
+                            to="/a/u/$userId"
+                            params={{ userId }}
+                            className="flex items-center gap-3 transition-all cursor-pointer"
+                        >
+                            <Avatar>
+                                <AvatarImage src={avatarUrl} />
+                                <AvatarFallback>{avatarFallback}</AvatarFallback>
+                            </Avatar>
+                            <span className="transition-all flex items-center gap-1.5 group-hover:underline">
+                                {userName}
+                            </span>
+                        </Link>
+                    ) : (
+                        <div className="flex items-center gap-3 transition-all">
+                            <Avatar>
+                                <AvatarImage src={undefined} />
+                                <AvatarFallback>{isAnonymous ? "?" : avatarFallback}</AvatarFallback>
+                            </Avatar>
+                            <span className="transition-all flex items-center gap-1.5">
+                                {isAnonymous ? "Anonim" : userName}
+                                {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                            </span>
+                        </div>
+                    )}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => setIsReportDialogOpen(true)}>

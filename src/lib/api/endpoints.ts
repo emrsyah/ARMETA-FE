@@ -10,6 +10,7 @@ export const USER_ENDPOINTS = {
   PROFILE: '/api/users/profile',
   CHANGE_PROFILE: '/api/users/changeProfile',
   LOGOUT: '/api/users/logout',
+  GET_USER_BY_ID: '/api/users', // Base path for /:id_user
 } as const
 
 export const LECTURER_SUBJECT_ENDPOINTS = {

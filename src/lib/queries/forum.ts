@@ -16,7 +16,7 @@ export const forumKeys = {
   bySubject: (subjectId: string) => [...forumKeys.all, 'subject', subjectId] as const,
   detail: (id: string) => [...forumKeys.all, 'detail', id] as const,
   search: (keyword: string) => [...forumKeys.all, 'search', keyword] as const,
-  liked: () => [...forumKeys.all, 'liked'] as const,
+  liked: (userId?: string) => [...forumKeys.all, 'liked', userId] as const,
   bookmarked: () => [...forumKeys.all, 'bookmarked'] as const,
 }
 
@@ -56,11 +56,13 @@ export const forumDetailQueryOptions = (forumId: string) =>
     enabled: !!forumId,
   })
 
-export const likedForumQueryOptions = () =>
+export const likedForumQueryOptions = (userId?: string) =>
   queryOptions({
-    queryKey: forumKeys.liked(),
+    queryKey: forumKeys.liked(userId),
     queryFn: async () => {
-      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_LIKED)
+      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_LIKED, {
+        params: userId ? { id_user: userId } : undefined,
+      })
       return response.data.data
     },
   })
@@ -110,8 +112,8 @@ export function useForumDetail(forumId: string) {
 }
 
 // Query: Get liked forums
-export function useLikedForum() {
-  return useQuery(likedForumQueryOptions())
+export function useLikedForum(userId?: string) {
+  return useQuery(likedForumQueryOptions(userId))
 }
 
 // Query: Get bookmarked forums

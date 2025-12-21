@@ -220,7 +220,9 @@ function ContentList({ ulasan, forums, isLoading, emptyMessage }: ContentListPro
               isBookmarked={!!item.is_bookmarked}
               idReply={item.id_reply}
               idForum={item.id_forum}
-              parentUserName={item.parent_user_name}
+              userId={item.user?.id_user || item.id_user}
+              parentUserName={item.parent_source?.user?.name || item.parent_user_name}
+              isAnonymous={item.is_anonymous}
             />
           ) : (
             <ForumCard

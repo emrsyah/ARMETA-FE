@@ -266,6 +266,8 @@ function UlasanResultWrapper({ ulasan }: { ulasan: any }) {
             likeCount={ulasan.total_likes || 0}
             isLiked={ulasan.is_liked}
             isBookmarked={ulasan.is_bookmarked}
+            userId={ulasan.user?.id_user || ulasan.id_user}
+            isAnonymous={ulasan.is_anonymous}
             subjectName={ulasan.subject_name || ulasan.lecturer_name}
             type={ulasan.lecturer_name ? 'dosen' : 'matkul'}
         />

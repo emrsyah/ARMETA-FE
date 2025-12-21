@@ -238,16 +238,32 @@ const ForumCard = ({
                     <ShareButton url={`${window.location.origin}/a/forum/${id_forum}`} />
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-3 cursor-pointer group">
-                        <Avatar>
-                            <AvatarImage src={isAnonymous ? undefined : user.image ?? undefined} />
-                            <AvatarFallback>{isAnonymous ? "?" : getInitials(user.name)}</AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-semibold hover:underline flex items-center gap-1.5 transition-all">
-                            {isAnonymous ? "Anonim" : user.name ?? 'Anonymous'}
-                            {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
-                        </span>
-                    </div>
+                    {!isAnonymous && user.id_user ? (
+                        <Link
+                            to="/a/u/$userId"
+                            params={{ userId: user.id_user }}
+                            className="flex items-center gap-3 transition-all cursor-pointer group"
+                        >
+                            <Avatar>
+                                <AvatarImage src={user.image ?? undefined} />
+                                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold flex items-center gap-1.5 transition-all group-hover:underline">
+                                {user.name ?? 'Anonymous'}
+                            </span>
+                        </Link>
+                    ) : (
+                        <div className="flex items-center gap-3 transition-all">
+                            <Avatar>
+                                <AvatarImage src={undefined} />
+                                <AvatarFallback>{isAnonymous ? "?" : getInitials(user.name)}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold flex items-center gap-1.5 transition-all">
+                                {isAnonymous ? "Anonim" : user.name ?? 'Anonymous'}
+                                {isAnonymous && <Ghost className="size-3.5 text-muted-foreground" />}
+                            </span>
+                        </div>
+                    )}
                     <p className="text-sm text-muted-foreground ">{formatDate(created_at)}</p>
                 </div>
             </CardFooter>

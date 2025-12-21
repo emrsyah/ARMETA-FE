@@ -7,6 +7,7 @@ import type { UserResponse, UpdateProfileInput } from '../schemas/user.schema'
 export const userKeys = {
   all: ['user'] as const,
   profile: () => [...userKeys.all, 'profile'] as const,
+  detail: (id: string) => [...userKeys.all, 'detail', id] as const,
 }
 
 // Query Options (for use in route loaders)
@@ -19,9 +20,24 @@ export const profileQueryOptions = () =>
     },
   })
 
+export const userByIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: userKeys.detail(userId),
+    queryFn: async () => {
+      const response = await api.get<UserResponse>(`${USER_ENDPOINTS.GET_USER_BY_ID}/${userId}`)
+      return response.data.data
+    },
+    enabled: !!userId,
+  })
+
 // Query: Get current user profile
 export function useProfile() {
   return useQuery(profileQueryOptions())
+}
+
+// Query: Get user profile by ID
+export function useUser(userId: string) {
+  return useQuery(userByIdQueryOptions(userId))
 }
 
 // Mutation: Update profile
