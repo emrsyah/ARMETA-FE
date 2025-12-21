@@ -2,16 +2,18 @@ import { useForm } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Input } from "./ui/input"
 import { Textarea } from "./ui/textarea"
-import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
+
+
 import { Button } from "./ui/button"
 import { Combobox } from "./ui/combobox"
-import { createUlasanSchema } from "@/lib/schemas"
+import { createUlasanSchema, type CreateUlasanInput } from "@/lib/schemas"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { motion } from "motion/react"
 import { Paperclip, X, Ghost } from "lucide-react"
 import { useMemo, useRef, useEffect } from "react"
-import z from "zod"
+
+
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject"
 import { useCreateUlasan } from "@/lib/queries/ulasan"
 import { toast } from "sonner"
@@ -24,11 +26,7 @@ type Props = {
   forumId?: string
 }
 
-const extendedCreateUlasanSchema = createUlasanSchema.extend({
-  type: z.enum(['dosen', 'matkul', 'reply']),
-})
 
-type ExtendedCreateUlasanInput = z.infer<typeof extendedCreateUlasanSchema>
 
 const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -49,10 +47,9 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
       label: subject.name,
     })), [subjects])
 
-  const form = useForm<ExtendedCreateUlasanInput>({
-    resolver: standardSchemaResolver(extendedCreateUlasanSchema),
+  const form = useForm<CreateUlasanInput>({
+    resolver: standardSchemaResolver(createUlasanSchema),
     defaultValues: {
-      type: (replyToId || forumId) ? 'reply' : 'matkul',
       judulUlasan: '',
       textUlasan: '',
       files: [],
@@ -64,17 +61,17 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
   useEffect(() => {
     if (open) {
       form.reset({
-        type: (replyToId || forumId) ? 'reply' : 'dosen',
         judulUlasan: '',
         textUlasan: '',
         files: [],
+        idDosen: undefined,
+        idMatkul: undefined,
         isAnonymous: false,
       })
     }
   }, [open, replyToId, forumId, form])
 
   const files = form.watch('files') || []
-  const reviewType = form.watch('type')
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -102,22 +99,25 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
     form.setValue('files', currentFiles.filter((_, i) => i !== index))
   }
 
-  const onSubmit = async (data: ExtendedCreateUlasanInput) => {
+  const onSubmit = async (data: CreateUlasanInput) => {
     try {
       if (!data.judulUlasan || !data.textUlasan) {
-        toast('Judul dan Ulasan tidak boleh kosong')
+        toast.error('Judul dan Ulasan tidak boleh kosong')
         return
       }
-      if ((data.type == 'dosen' || data.type == 'matkul') && (!data.idDosen && !data.idMatkul)) {
-        toast('Dosen atau Mata Kuliah Wajib Diisi')
+
+      const isReply = !!(replyToId || forumId)
+      if (!isReply && !data.idDosen && !data.idMatkul) {
+        toast.error('Pilih setidaknya satu Dosen atau Mata Kuliah')
         return
       }
+
       await createUlasanMutation.mutateAsync({
         judulUlasan: data.judulUlasan,
         textUlasan: data.textUlasan,
-        idDosen: data.type === 'dosen' ? data.idDosen : undefined,
-        idMatkul: data.type === 'matkul' ? data.idMatkul : undefined,
-        idReply: data.type === 'reply' ? replyToId : undefined,
+        idDosen: data.idDosen,
+        idMatkul: data.idMatkul,
+        idReply: replyToId,
         idForum: forumId,
         files: data.files,
         isAnonymous: data.isAnonymous,
@@ -147,63 +147,46 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Review Type Tabs - Hide if replying */}
-              {!replyToId && !forumId && (
-                <FormField
-                  name="type"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <Tabs
-                        value={field.value}
-                        onValueChange={(value) => {
-                          field.onChange(value)
-                          // Clear selection when switching type
-                          form.setValue('idDosen', undefined)
-                          form.setValue('idMatkul', undefined)
-                        }}
-                        className="w-full"
-                      >
-                        <TabsList className="w-full">
-                          <TabsTrigger value="matkul" className="flex-1">
-                            Ulasan Mata Kuliah
-                          </TabsTrigger>
-                          <TabsTrigger value="dosen" className="flex-1">
-                            Ulasan Dosen
-                          </TabsTrigger>
-                        </TabsList>
-                      </Tabs>
-                    </FormItem>
-                  )}
-                />
-              )}
-
               {/* Select Dosen/Matkul - Hide if replying */}
               {!replyToId && !forumId && (
-                <FormItem>
-                  <FormLabel>
-                    {reviewType === 'dosen' ? 'Pilih Dosen' : 'Pilih Mata Kuliah'}
-                  </FormLabel>
-                  {reviewType === 'dosen' ? (
-                    <Combobox
-                      options={dosenList}
-                      value={form.watch('idDosen')}
-                      onChange={(value) => form.setValue('idDosen', value)}
-                      placeholder="Pilih dosen..."
-                      searchPlaceholder="Cari dosen..."
-                      emptyText="Dosen tidak ditemukan."
-                    />
-                  ) : (
-                    <Combobox
-                      options={matkulList}
-                      value={form.watch('idMatkul')}
-                      onChange={(value) => form.setValue('idMatkul', value)}
-                      placeholder="Pilih mata kuliah..."
-                      searchPlaceholder="Cari mata kuliah..."
-                      emptyText="Mata kuliah tidak ditemukan."
-                    />
-                  )}
-                </FormItem>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    name="idMatkul"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Mata Kuliah</FormLabel>
+                        <Combobox
+                          options={matkulList}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Pilih mata kuliah..."
+                          searchPlaceholder="Cari mata kuliah..."
+                          emptyText="Mata kuliah tidak ditemukan."
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="idDosen"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Dosen</FormLabel>
+                        <Combobox
+                          options={dosenList}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Pilih dosen..."
+                          searchPlaceholder="Cari dosen..."
+                          emptyText="Dosen tidak ditemukan."
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               )}
 
               {/* Title */}
