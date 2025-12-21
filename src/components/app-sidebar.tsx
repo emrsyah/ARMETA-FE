@@ -123,8 +123,8 @@ export function AppSidebar() {
         {isAdmin && (
           <SidebarGroup>
             <div className="px-3 py-2 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-[#E92067]" />
-              <h4 className="text-[16px] font-bold text-[#E92067] tracking-wider">
+              <ShieldCheck size={18} className="" />
+              <h4 className="text-[16px] font-bold tracking-wider">
                 Admin
               </h4>
             </div>
