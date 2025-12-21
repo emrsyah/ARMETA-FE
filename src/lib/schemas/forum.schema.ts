@@ -76,8 +76,8 @@ export type ForumDetail = z.infer<typeof forumDetailSchema>
 
 // Create forum request
 export const createForumSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be at most 100 characters'),
+  description: z.string().max(1000, 'Description must be at most 1000 characters').optional(),
   id_subject: z.string().uuid('Valid subject ID is required'),
   files: z.array(z.instanceof(File)).optional(),
   isAnonymous: z.boolean().optional(),

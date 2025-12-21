@@ -68,8 +68,8 @@ export type Ulasan = z.infer<typeof ulasanSchema>
 
 // Create ulasan request
 export const createUlasanSchema = z.object({
-  judulUlasan: z.string().min(1, 'Title is required'),
-  textUlasan: z.string().min(1, 'Content is required'),
+  judulUlasan: z.string().min(1, 'Title is required').max(100, 'Title must be at most 100 characters'),
+  textUlasan: z.string().min(1, 'Content is required').max(1000, 'Content must be at most 1000 characters'),
   idMatkul: z.string().uuid().optional(),
   idDosen: z.string().uuid().optional(),
   idReply: z.string().uuid().optional(),
@@ -83,8 +83,8 @@ export type CreateUlasanInput = z.infer<typeof createUlasanSchema>
 // Edit ulasan request
 export const editUlasanSchema = z.object({
   id_review: z.string().uuid(),
-  title: z.string().min(1, 'Title is required').optional(),
-  body: z.string().min(1, 'Content is required').optional(),
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be at most 100 characters').optional(),
+  body: z.string().min(1, 'Content is required').max(1000, 'Content must be at most 1000 characters').optional(),
   files: z.array(z.instanceof(File)).optional(),
   isAnonymous: z.boolean().optional(),
 })

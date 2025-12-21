@@ -439,14 +439,20 @@ function UlasanDetailPage() {
           <Card className="overflow-hidden border-primary/20 shadow-sm">
             <CardContent className="py-4">
               <form onSubmit={handleSubmitReply} className="flex items-center gap-3">
-                <Input
-                  ref={inputRef}
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Tulis balasan untuk ulasan ini..."
-                  className="flex-1 bg-gray-50 focus-visible:ring-primary/20 border-gray-200"
-                  disabled={createUlasanMutation.isPending}
-                />
+                <div className="flex-1 relative">
+                  <Input
+                    ref={inputRef}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Tulis balasan untuk ulasan ini..."
+                    className="w-full bg-gray-50 focus-visible:ring-primary/20 border-gray-200 pr-16"
+                    disabled={createUlasanMutation.isPending}
+                    maxLength={300}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                    {replyText.length}/300
+                  </div>
+                </div>
                 <Button
                   type="submit"
                   size="icon"

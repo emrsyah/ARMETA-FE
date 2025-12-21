@@ -202,11 +202,18 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                   <FormItem>
                     <FormLabel>Judul {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder={`Masukkan judul ${(replyToId || forumId) ? 'balasan' : 'ulasan'}...`}
-                        autoFocus
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder={`Masukkan judul ${(replyToId || forumId) ? 'balasan' : 'ulasan'}...`}
+                          autoFocus
+                          maxLength={100}
+                          className="pr-12"
+                        />
+                        <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                          {(field.value?.length || 0)}/100
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -221,11 +228,17 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                   <FormItem>
                     <FormLabel>Isi {(replyToId || forumId) ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder={`Tulis ${(replyToId || forumId) ? 'balasan' : 'ulasan'} Anda di sini...`}
-                        className="min-h-[120px] resize-none"
-                      />
+                      <div className="relative">
+                        <Textarea
+                          {...field}
+                          placeholder={`Tulis ${(replyToId || forumId) ? 'balasan' : 'ulasan'} Anda di sini...`}
+                          className="min-h-[120px] resize-none pb-6 pr-12"
+                          maxLength={1000}
+                        />
+                        <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                          {(field.value?.length || 0)}/1000
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

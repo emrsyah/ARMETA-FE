@@ -125,11 +125,18 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
                   <FormItem>
                     <FormLabel>Judul Forum</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Masukkan judul forum..."
-                        autoFocus
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder="Masukkan judul forum..."
+                          autoFocus
+                          maxLength={100}
+                          className="pr-12"
+                        />
+                        <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                          {(field.value?.length || 0)}/100
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -144,11 +151,17 @@ const CreateForumModal = ({ open, onOpenChange }: Props) => {
                   <FormItem>
                     <FormLabel>Isi Forum</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Masukkan isi forum..."
-                        className="min-h-[120px] resize-none"
-                      />
+                      <div className="relative">
+                        <Textarea
+                          {...field}
+                          placeholder="Masukkan isi forum..."
+                          className="min-h-[120px] resize-none pb-6 pr-12"
+                          maxLength={1000}
+                        />
+                        <div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
+                          {(field.value?.length || 0)}/1000
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
