@@ -67,6 +67,7 @@ const ForumCard = ({
     const [localBookmarkCount, setLocalBookmarkCount] = useState(total_bookmark)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+    const [isExpanded, setIsExpanded] = useState(false)
 
     // Sync with props when they change (e.g., from refetch)
     useEffect(() => {
@@ -145,8 +146,8 @@ const ForumCard = ({
 
     return (
         <Card>
-            <CardHeader className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
+            <CardHeader className="flex items-center justify-between w-full min-w-0">
+                <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                     {subject_name && (
                         <Badge variant={'secondary'}>{subject_name}</Badge>
                     )}
@@ -165,10 +166,29 @@ const ForumCard = ({
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
                 <Link to="/a/forum/$forumId" params={{ forumId: id_forum }} search={{ focus: false }}>
-                    <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline">{title}</h3>
+                    <h3 className="text-lg font-semibold line-clamp-2 cursor-pointer hover:underline break-all">{title}</h3>
                 </Link>
                 {description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+                    <div className="relative">
+                        <p className={cn(
+                            "text-sm text-muted-foreground leading-relaxed transition-all duration-300 break-all",
+                            !isExpanded && "line-clamp-3"
+                        )}>
+                            {description}
+                        </p>
+                        {description.length > 150 && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    setIsExpanded(!isExpanded)
+                                }}
+                                className="text-primary text-xs font-semibold mt-1 hover:underline focus:outline-none"
+                            >
+                                {isExpanded ? "Sembunyikan" : "Baca Selengkapnya"}
+                            </button>
+                        )}
+                    </div>
                 )}
                 {replies.length > 0 && (
                     <div className="flex gap-3">

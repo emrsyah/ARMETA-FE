@@ -62,6 +62,7 @@ const ReviewCard = ({
     const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount)
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+    const [isExpanded, setIsExpanded] = useState(false)
 
     useEffect(() => {
         setLiked(isLiked)
@@ -128,8 +129,8 @@ const ReviewCard = ({
 
     return (
         <Card>
-            <CardHeader className="flex items-center justify-between w-full">
-                <CardTitle className="flex items-center gap-3 group">
+            <CardHeader className="flex items-center justify-between w-full min-w-0">
+                <CardTitle className="flex items-center gap-3 group min-w-0 overflow-hidden">
                     {!isAnonymous && userId ? (
                         <Link
                             to="/a/u/$userId"
@@ -145,7 +146,7 @@ const ReviewCard = ({
                             </span>
                         </Link>
                     ) : (
-                        <div className="flex items-center gap-3 transition-all">
+                        <div className="flex items-center gap-3 transition-all min-w-0 overflow-hidden">
                             <Avatar>
                                 <AvatarImage src={undefined} />
                                 <AvatarFallback>{isAnonymous ? "?" : avatarFallback}</AvatarFallback>
@@ -194,18 +195,34 @@ const ReviewCard = ({
                     </div>
                 )}
                 <div className="flex items-start gap-8">
-                    <div className="w-full">
+                    <div className="w-full min-w-0">
                         {!isReply ? (
                             <div className="flex flex-col gap-2">
                                 {type ? (
                                     <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
                                 ) : null}
                                 <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: false }}>
-                                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
+                                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline break-all">{title == "" ? "No Title" : title}</h3>
                                 </Link>
                             </div>
                         ) : null}
-                        <p className={`  leading-relaxed text-justify line-clamp-5 ${isReply ? 'text-base text-gray-950' : 'text-sm text-gray-500'}`}>{content}</p>
+                        <div className="relative">
+                            <p className={cn(
+                                "leading-relaxed text-justify transition-all duration-300 break-all",
+                                isReply ? 'text-base text-gray-950' : 'text-sm text-gray-500',
+                                !isExpanded && "line-clamp-3"
+                            )}>
+                                {content}
+                            </p>
+                            {content.length > 200 && (
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="text-primary text-xs font-semibold mt-1 hover:underline focus:outline-none"
+                                >
+                                    {isExpanded ? "Sembunyikan" : "Baca Selengkapnya"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                     {files && files.length > 0 && (
                         <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">

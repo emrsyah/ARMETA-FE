@@ -213,7 +213,7 @@ function ForumDetailPage() {
         </Link>
 
         {/* Forum Detail Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden min-w-0">
           <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-gray-50">
             <div className="flex items-start justify-between">
               <div className="space-y-3">
@@ -223,7 +223,7 @@ function ForumDetailPage() {
                   <Badge variant="outline">Umum</Badge>
                 </div>
                 {/* Title */}
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 break-all">
                   {forum?.title || 'Forum Title'}
                 </h1>
               </div>
@@ -244,7 +244,7 @@ function ForumDetailPage() {
           <CardContent className="pt-6">
             {/* Content */}
             <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-all">
                 {forum?.description || 'Tidak ada deskripsi untuk forum ini.'}
               </p>
             </div>

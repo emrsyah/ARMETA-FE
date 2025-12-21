@@ -237,7 +237,7 @@ function UlasanDetailPage() {
         })()}
 
         {/* Ulasan Detail Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden min-w-0">
           <CardHeader className="border-b">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -326,13 +326,13 @@ function UlasanDetailPage() {
 
           <CardContent className="pt-6 space-y-6">
             {/* Title */}
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 break-all">
               {ulasan?.title || 'Judul Ulasan'}
             </h1>
 
             {/* Content */}
             <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-all">
                 {ulasan?.body || 'Tidak ada konten.'}
               </p>
             </div>
