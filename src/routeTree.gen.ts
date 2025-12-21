@@ -24,7 +24,9 @@ import { Route as appAForumIndexRouteImport } from './routes/(app)/a.forum.index
 import { Route as appAUlasanUlasanIdRouteImport } from './routes/(app)/a.ulasan.$ulasanId'
 import { Route as appAUUserIdRouteImport } from './routes/(app)/a.u.$userId'
 import { Route as appAForumForumIdRouteImport } from './routes/(app)/a.forum.$forumId'
+import { Route as appAAdminUsersRouteImport } from './routes/(app)/a.admin.users'
 import { Route as appAAdminSubjectsRouteImport } from './routes/(app)/a.admin.subjects'
+import { Route as appAAdminReportsRouteImport } from './routes/(app)/a.admin.reports'
 import { Route as appAAdminLecturersRouteImport } from './routes/(app)/a.admin.lecturers'
 import { Route as appAAdminDashboardRouteImport } from './routes/(app)/a.admin.dashboard'
 import { Route as appAAdminContentRouteImport } from './routes/(app)/a.admin.content'
@@ -104,9 +106,19 @@ const appAForumForumIdRoute = appAForumForumIdRouteImport.update({
   path: '/forum/$forumId',
   getParentRoute: () => appARoute,
 } as any)
+const appAAdminUsersRoute = appAAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => appAAdminRoute,
+} as any)
 const appAAdminSubjectsRoute = appAAdminSubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
+  getParentRoute: () => appAAdminRoute,
+} as any)
+const appAAdminReportsRoute = appAAdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => appAAdminRoute,
 } as any)
 const appAAdminLecturersRoute = appAAdminLecturersRouteImport.update({
@@ -140,7 +152,9 @@ export interface FileRoutesByFullPath {
   '/a/admin/content': typeof appAAdminContentRoute
   '/a/admin/dashboard': typeof appAAdminDashboardRoute
   '/a/admin/lecturers': typeof appAAdminLecturersRoute
+  '/a/admin/reports': typeof appAAdminReportsRoute
   '/a/admin/subjects': typeof appAAdminSubjectsRoute
+  '/a/admin/users': typeof appAAdminUsersRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
   '/a/u/$userId': typeof appAUUserIdRoute
   '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
@@ -161,7 +175,9 @@ export interface FileRoutesByTo {
   '/a/admin/content': typeof appAAdminContentRoute
   '/a/admin/dashboard': typeof appAAdminDashboardRoute
   '/a/admin/lecturers': typeof appAAdminLecturersRoute
+  '/a/admin/reports': typeof appAAdminReportsRoute
   '/a/admin/subjects': typeof appAAdminSubjectsRoute
+  '/a/admin/users': typeof appAAdminUsersRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
   '/a/u/$userId': typeof appAUUserIdRoute
   '/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
@@ -183,7 +199,9 @@ export interface FileRoutesById {
   '/(app)/a/admin/content': typeof appAAdminContentRoute
   '/(app)/a/admin/dashboard': typeof appAAdminDashboardRoute
   '/(app)/a/admin/lecturers': typeof appAAdminLecturersRoute
+  '/(app)/a/admin/reports': typeof appAAdminReportsRoute
   '/(app)/a/admin/subjects': typeof appAAdminSubjectsRoute
+  '/(app)/a/admin/users': typeof appAAdminUsersRoute
   '/(app)/a/forum/$forumId': typeof appAForumForumIdRoute
   '/(app)/a/u/$userId': typeof appAUUserIdRoute
   '/(app)/a/ulasan/$ulasanId': typeof appAUlasanUlasanIdRoute
@@ -206,7 +224,9 @@ export interface FileRouteTypes {
     | '/a/admin/content'
     | '/a/admin/dashboard'
     | '/a/admin/lecturers'
+    | '/a/admin/reports'
     | '/a/admin/subjects'
+    | '/a/admin/users'
     | '/a/forum/$forumId'
     | '/a/u/$userId'
     | '/a/ulasan/$ulasanId'
@@ -227,7 +247,9 @@ export interface FileRouteTypes {
     | '/a/admin/content'
     | '/a/admin/dashboard'
     | '/a/admin/lecturers'
+    | '/a/admin/reports'
     | '/a/admin/subjects'
+    | '/a/admin/users'
     | '/a/forum/$forumId'
     | '/a/u/$userId'
     | '/a/ulasan/$ulasanId'
@@ -248,7 +270,9 @@ export interface FileRouteTypes {
     | '/(app)/a/admin/content'
     | '/(app)/a/admin/dashboard'
     | '/(app)/a/admin/lecturers'
+    | '/(app)/a/admin/reports'
     | '/(app)/a/admin/subjects'
+    | '/(app)/a/admin/users'
     | '/(app)/a/forum/$forumId'
     | '/(app)/a/u/$userId'
     | '/(app)/a/ulasan/$ulasanId'
@@ -369,11 +393,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAForumForumIdRouteImport
       parentRoute: typeof appARoute
     }
+    '/(app)/a/admin/users': {
+      id: '/(app)/a/admin/users'
+      path: '/users'
+      fullPath: '/a/admin/users'
+      preLoaderRoute: typeof appAAdminUsersRouteImport
+      parentRoute: typeof appAAdminRoute
+    }
     '/(app)/a/admin/subjects': {
       id: '/(app)/a/admin/subjects'
       path: '/subjects'
       fullPath: '/a/admin/subjects'
       preLoaderRoute: typeof appAAdminSubjectsRouteImport
+      parentRoute: typeof appAAdminRoute
+    }
+    '/(app)/a/admin/reports': {
+      id: '/(app)/a/admin/reports'
+      path: '/reports'
+      fullPath: '/a/admin/reports'
+      preLoaderRoute: typeof appAAdminReportsRouteImport
       parentRoute: typeof appAAdminRoute
     }
     '/(app)/a/admin/lecturers': {
@@ -404,14 +442,18 @@ interface appAAdminRouteChildren {
   appAAdminContentRoute: typeof appAAdminContentRoute
   appAAdminDashboardRoute: typeof appAAdminDashboardRoute
   appAAdminLecturersRoute: typeof appAAdminLecturersRoute
+  appAAdminReportsRoute: typeof appAAdminReportsRoute
   appAAdminSubjectsRoute: typeof appAAdminSubjectsRoute
+  appAAdminUsersRoute: typeof appAAdminUsersRoute
 }
 
 const appAAdminRouteChildren: appAAdminRouteChildren = {
   appAAdminContentRoute: appAAdminContentRoute,
   appAAdminDashboardRoute: appAAdminDashboardRoute,
   appAAdminLecturersRoute: appAAdminLecturersRoute,
+  appAAdminReportsRoute: appAAdminReportsRoute,
   appAAdminSubjectsRoute: appAAdminSubjectsRoute,
+  appAAdminUsersRoute: appAAdminUsersRoute,
 }
 
 const appAAdminRouteWithChildren = appAAdminRoute._addFileChildren(

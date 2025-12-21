@@ -91,7 +91,7 @@ function UserProfilePage() {
                             <div className="flex flex-col gap-1 items-center md:items-start opacity-90">
                                 <div className="flex items-center gap-2">
                                     <Mail size={16} />
-                                    <p className="text-blue-50">Member sejak {new Date(user.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</p>
+                                    <p className="text-blue-50">Member sejak {new Date(user.created_at || '').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</p>
                                 </div>
                             </div>
                         </div>

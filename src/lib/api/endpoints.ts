@@ -30,6 +30,8 @@ export const ADMIN_ENDPOINTS = {
   TOGGLE_BAN: '/api/admin/users', // + /:id_user/ban
   UPDATE_ROLE: '/api/admin/users', // + /:id_user/role
   DELETE_CONTENT: '/api/admin/content', // + /:type/:id
+  GET_REPORTS: '/api/admin/reports',
+  RESOLVE_REPORT: '/api/admin/reports', // + /:id_report/resolve
 } as const
 
 export const ULASAN_ENDPOINTS = {
