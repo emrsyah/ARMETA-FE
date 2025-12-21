@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { ReportDialog } from '@/components/report-dialog'
 import ImageLightbox from '@/components/image-lightbox'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/(app)/a/ulasan/$ulasanId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -103,18 +104,22 @@ function UlasanDetailPage() {
       setBookmarkCount((prev) => prev - 1)
       try {
         await removeBookmarkMutation.mutateAsync({ id_review: ulasanId })
+        toast.success("Ulasan berhasil dihapus dari bookmark")
       } catch {
         setBookmarked(true)
         setBookmarkCount((prev) => prev + 1)
+        toast.error("Gagal menghapus ulasan dari bookmark")
       }
     } else {
       setBookmarked(true)
       setBookmarkCount((prev) => prev + 1)
       try {
         await bookmarkMutation.mutateAsync({ id_review: ulasanId })
+        toast.success("Ulasan berhasil ditambahkan ke bookmark")
       } catch {
         setBookmarked(false)
         setBookmarkCount((prev) => prev - 1)
+        toast.error("Gagal menambahkan ulasan ke bookmark")
       }
     }
   }

@@ -25,6 +25,7 @@ import { ShareButton } from '@/components/share-button'
 import { ReportDialog } from '@/components/report-dialog'
 import { FileText, ImageIcon } from 'lucide-react'
 import ImageLightbox from '@/components/image-lightbox'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/(app)/a/forum/$forumId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -116,6 +117,10 @@ function ForumDetailPage() {
         onError: () => {
           setLocalIsBookmarked(true)
           setLocalBookmarkCount(prev => prev + 1)
+          toast.error("Gagal menghapus forum dari bookmark")
+        },
+        onSuccess: () => {
+          toast.success("Forum berhasil dihapus dari bookmark")
         }
       })
     } else {
@@ -125,6 +130,10 @@ function ForumDetailPage() {
         onError: () => {
           setLocalIsBookmarked(false)
           setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+          toast.error("Gagal menambahkan forum ke bookmark")
+        },
+        onSuccess: () => {
+          toast.success("Forum berhasil ditambahkan ke bookmark")
         }
       })
     }

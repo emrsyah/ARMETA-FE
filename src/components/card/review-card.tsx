@@ -10,6 +10,7 @@ import { ShareButton } from "../share-button"
 import { ReportDialog } from "../report-dialog"
 import { cn } from "@/lib/utils"
 import ImageLightbox from "../image-lightbox"
+import { toast } from "sonner"
 
 type Props = {
     id: string;
@@ -106,20 +107,24 @@ const ReviewCard = ({
             setCurrentBookmarkCount((prev) => prev - 1)
             try {
                 await removeBookmarkMutation.mutateAsync({ id_review: id })
+                toast.success("Ulasan berhasil dihapus dari bookmark")
             } catch {
                 // Revert on error
                 setBookmarked(true)
                 setCurrentBookmarkCount((prev) => prev + 1)
+                toast.error("Gagal menghapus ulasan dari bookmark")
             }
         } else {
             setBookmarked(true)
             setCurrentBookmarkCount((prev) => prev + 1)
             try {
                 await bookmarkMutation.mutateAsync({ id_review: id })
+                toast.success("Ulasan berhasil ditambahkan ke bookmark")
             } catch {
                 // Revert on error
                 setBookmarked(false)
                 setCurrentBookmarkCount((prev) => prev - 1)
+                toast.error("Gagal menambahkan ulasan ke bookmark")
             }
         }
     }

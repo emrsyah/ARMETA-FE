@@ -12,6 +12,7 @@ import { useLikeForum, useUnlikeForum, useBookmarkForum, useUnbookmarkForum } fr
 import { useState, useEffect } from "react"
 import { ReportDialog } from "../report-dialog"
 import ImageLightbox from "../image-lightbox"
+import { toast } from "sonner"
 
 export type ForumReply = {
     authorName: string
@@ -120,22 +121,26 @@ const ForumCard = ({
             // Optimistic unbookmark
             setLocalIsBookmarked(false)
             setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+            toast.success("Forum berhasil dihapus dari bookmark")
             unbookmarkMutation.mutate(id_forum, {
                 onError: () => {
                     // Revert on error
                     setLocalIsBookmarked(true)
                     setLocalBookmarkCount(prev => prev + 1)
+                    toast.error("Gagal menghapus forum dari bookmark")
                 }
             })
         } else {
             // Optimistic bookmark
             setLocalIsBookmarked(true)
             setLocalBookmarkCount(prev => prev + 1)
+            toast.success("Forum berhasil ditambahkan ke bookmark")
             bookmarkMutation.mutate(id_forum, {
                 onError: () => {
                     // Revert on error
                     setLocalIsBookmarked(false)
                     setLocalBookmarkCount(prev => Math.max(0, prev - 1))
+                    toast.error("Gagal menambahkan forum ke bookmark")
                 }
             })
         }
