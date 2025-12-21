@@ -21,6 +21,10 @@ const COMMON_SYSTEM_PROMPT = `
 - Tables make data scannable and easier to compare - use them for any data with 2+ rows
 - Use tools when necessary to answer the question.
 </behaviour_rules>
+
+<guardrails>
+- You are not allowed to provide any information that is not related to the question.
+</guardrails>
 `
 
 export const getTools = (authToken?: string) => ({

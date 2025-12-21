@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as appARouteImport } from './routes/(app)/a'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google.callback'
+import { Route as ApiChatMessagesRouteImport } from './routes/api/chat.messages'
+import { Route as ApiChatHistoryRouteImport } from './routes/api/chat.history'
 import { Route as appASearchRouteImport } from './routes/(app)/a.search'
 import { Route as appAProfileRouteImport } from './routes/(app)/a.profile'
 import { Route as appAHomeRouteImport } from './routes/(app)/a.home'
@@ -41,6 +43,16 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatMessagesRoute = ApiChatMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => ApiChatRoute,
+} as any)
+const ApiChatHistoryRoute = ApiChatHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ApiChatRoute,
 } as any)
 const appASearchRoute = appASearchRouteImport.update({
   id: '/search',
@@ -86,11 +98,13 @@ const appAForumForumIdRoute = appAForumForumIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
-  '/api/chat': typeof ApiChatRoute
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/a/arme': typeof appAArmeRoute
   '/a/home': typeof appAHomeRoute
   '/a/profile': typeof appAProfileRoute
   '/a/search': typeof appASearchRoute
+  '/api/chat/history': typeof ApiChatHistoryRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
   '/a/u/$userId': typeof appAUUserIdRoute
@@ -100,11 +114,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a': typeof appARouteWithChildren
-  '/api/chat': typeof ApiChatRoute
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/a/arme': typeof appAArmeRoute
   '/a/home': typeof appAHomeRoute
   '/a/profile': typeof appAProfileRoute
   '/a/search': typeof appASearchRoute
+  '/api/chat/history': typeof ApiChatHistoryRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/a/forum/$forumId': typeof appAForumForumIdRoute
   '/a/u/$userId': typeof appAUUserIdRoute
@@ -115,11 +131,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(app)/a': typeof appARouteWithChildren
-  '/api/chat': typeof ApiChatRoute
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/(app)/a/arme': typeof appAArmeRoute
   '/(app)/a/home': typeof appAHomeRoute
   '/(app)/a/profile': typeof appAProfileRoute
   '/(app)/a/search': typeof appASearchRoute
+  '/api/chat/history': typeof ApiChatHistoryRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/(app)/a/forum/$forumId': typeof appAForumForumIdRoute
   '/(app)/a/u/$userId': typeof appAUUserIdRoute
@@ -136,6 +154,8 @@ export interface FileRouteTypes {
     | '/a/home'
     | '/a/profile'
     | '/a/search'
+    | '/api/chat/history'
+    | '/api/chat/messages'
     | '/auth/google/callback'
     | '/a/forum/$forumId'
     | '/a/u/$userId'
@@ -150,6 +170,8 @@ export interface FileRouteTypes {
     | '/a/home'
     | '/a/profile'
     | '/a/search'
+    | '/api/chat/history'
+    | '/api/chat/messages'
     | '/auth/google/callback'
     | '/a/forum/$forumId'
     | '/a/u/$userId'
@@ -164,6 +186,8 @@ export interface FileRouteTypes {
     | '/(app)/a/home'
     | '/(app)/a/profile'
     | '/(app)/a/search'
+    | '/api/chat/history'
+    | '/api/chat/messages'
     | '/auth/google/callback'
     | '/(app)/a/forum/$forumId'
     | '/(app)/a/u/$userId'
@@ -174,7 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   appARoute: typeof appARouteWithChildren
-  ApiChatRoute: typeof ApiChatRoute
+  ApiChatRoute: typeof ApiChatRouteWithChildren
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
@@ -207,6 +231,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/google/callback'
       preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/chat/messages': {
+      id: '/api/chat/messages'
+      path: '/messages'
+      fullPath: '/api/chat/messages'
+      preLoaderRoute: typeof ApiChatMessagesRouteImport
+      parentRoute: typeof ApiChatRoute
+    }
+    '/api/chat/history': {
+      id: '/api/chat/history'
+      path: '/history'
+      fullPath: '/api/chat/history'
+      preLoaderRoute: typeof ApiChatHistoryRouteImport
+      parentRoute: typeof ApiChatRoute
     }
     '/(app)/a/search': {
       id: '/(app)/a/search'
@@ -291,10 +329,23 @@ const appARouteChildren: appARouteChildren = {
 
 const appARouteWithChildren = appARoute._addFileChildren(appARouteChildren)
 
+interface ApiChatRouteChildren {
+  ApiChatHistoryRoute: typeof ApiChatHistoryRoute
+  ApiChatMessagesRoute: typeof ApiChatMessagesRoute
+}
+
+const ApiChatRouteChildren: ApiChatRouteChildren = {
+  ApiChatHistoryRoute: ApiChatHistoryRoute,
+  ApiChatMessagesRoute: ApiChatMessagesRoute,
+}
+
+const ApiChatRouteWithChildren =
+  ApiChatRoute._addFileChildren(ApiChatRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   appARoute: appARouteWithChildren,
-  ApiChatRoute: ApiChatRoute,
+  ApiChatRoute: ApiChatRouteWithChildren,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-
 import { convertToModelMessages, UIMessage } from 'ai'
 import { createAgent } from '@/lib/agent/agent';
-
+import { verifyAuth } from '@/lib/auth-server';
+import { saveMessage, createChat } from '@/lib/chat-history';
 
 const COMMON_SYSTEM_PROMPT = `
 <identity>
@@ -27,8 +27,31 @@ export const Route = createFileRoute('/api/chat')({
     handlers: {
       POST: async ({ request }) => {
         // Parse the array of UIMessage objects from the request body
-        const { messages }: { messages: UIMessage[] } = await request.json()
+        const { messages, chatId: existingChatId }: { messages: UIMessage[], chatId?: string } = await request.json()
         const authHeader = request.headers.get('Authorization')
+
+        const user = await verifyAuth(authHeader)
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+
+        let chatId = existingChatId
+        const lastMessage = messages[messages.length - 1]
+
+        // If it's the very first message and no chatId, create a new chat
+        if (!chatId && messages.length === 1) {
+          const content = lastMessage.parts.map(p => p.type === 'text' ? (p as any).text : '').join('')
+          const title = content ? (content.slice(0, 50) + (content.length > 50 ? '...' : '')) : 'New Chat'
+          chatId = await createChat(user.id_user, title)
+        }
+
+        if (chatId) {
+          // Save user message
+          await saveMessage(chatId, lastMessage)
+        }
 
         // Create a request-specific agent with auth
         const agent = createAgent(authHeader ?? undefined)
@@ -39,8 +62,17 @@ export const Route = createFileRoute('/api/chat')({
           messages: convertToModelMessages(messages),
         })
 
+        const currentChatId = chatId;
+
         // The AI SDK offers a helper to turn the stream into a proper Response
-        return result.toUIMessageStreamResponse()
+        return result.toUIMessageStreamResponse({
+          headers: currentChatId ? { 'x-chat-id': currentChatId } : undefined,
+          onFinish: async (info) => {
+            if (currentChatId) {
+              await saveMessage(currentChatId, info.responseMessage)
+            }
+          }
+        })
       },
     },
   },
