@@ -50,6 +50,18 @@ export const ulasanSchema = z.object({
     image: z.string().nullable(),
   }).optional(),
   is_anonymous: z.boolean().default(false),
+  parent_source: z.object({
+    type: z.enum(['review', 'forum']),
+    id: z.string(),
+    title: z.string().nullable().optional(),
+    body: z.string().nullable(),
+    created_at: z.string(),
+    user: z.object({
+      id_user: z.string().uuid().nullable(),
+      name: z.string(),
+      image: z.string().nullable(),
+    })
+  }).optional().nullable()
 })
 
 export type Ulasan = z.infer<typeof ulasanSchema>

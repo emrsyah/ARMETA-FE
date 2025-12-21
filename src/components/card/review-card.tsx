@@ -28,6 +28,9 @@ type Props = {
     subjectName?: string;
     type?: 'dosen' | 'matkul';
     isAnonymous?: boolean;
+    idReply?: string | null;
+    idForum?: string | null;
+    parentUserName?: string | null;
 }
 
 const ReviewCard = ({
@@ -47,6 +50,9 @@ const ReviewCard = ({
     subjectName,
     type,
     isAnonymous = false,
+    idReply = null,
+    idForum = null,
+    parentUserName = null,
 }: Props) => {
     const [liked, setLiked] = useState(isLiked)
     const [bookmarked, setBookmarked] = useState(isBookmarked)
@@ -143,83 +149,108 @@ const ReviewCard = ({
                     />
                 </div>
             </CardHeader>
-            <CardContent className="flex items-start gap-8">
-                <div className="w-full">
-                    {!isReply ? (
-                        <div className="flex flex-col gap-2">
-                            {type ? (
-                                <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
-                            ) : null}
-                            <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: false }}>
-                                <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
-                            </Link>
-                        </div>
-                    ) : null}
-                    <p className={`  leading-relaxed text-justify line-clamp-5 ${isReply ? 'text-base text-gray-950' : 'text-sm text-gray-500'}`}>{content}</p>
-                </div>
-                {files && files.length > 0 && (
-                    <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
-                        {files.length === 1 ? (
-                            <div
-                                className="block w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (isImage(files[0])) setSelectedImageIndex(0);
-                                    else window.open(files[0], '_blank');
-                                }}
-                            >
-                                {isImage(files[0]) ? (
-                                    <img
-                                        src={files[0]}
-                                        alt="Review attachment"
-                                        className="w-full h-32 object-cover rounded-lg"
-                                    />
-                                ) : (
-                                    <div className="w-full h-32 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-4 text-gray-500 border border-gray-200">
-                                        <FileText className="h-8 w-8 mb-2" />
-                                        <span className="text-xs text-center truncate w-full px-2">{getFileName(files[0])}</span>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className={`grid gap-1 ${files.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
-                                {files.slice(0, 4).map((file, index) => (
-                                    <div
-                                        key={index}
-                                        className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && files.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
-                                            }`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (isImage(file)) setSelectedImageIndex(index);
-                                            else window.open(file, '_blank');
-                                        }}
-                                    >
-                                        {isImage(file) ? (
-                                            <img
-                                                src={file}
-                                                alt={`Review attachment ${index + 1}`}
-                                                className={`w-full object-cover rounded ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
-                                                    }`}
-                                            />
-                                        ) : (
-                                            <div className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
-                                                }`}>
-                                                <FileText className="h-4 w-4 mb-1" />
-                                                <span className="text-[10px] text-center truncate w-full">{index === 0 && files.length > 1 ? getFileName(file) : 'PDF'}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+            <CardContent className="flex flex-col gap-4">
+                {(idReply || idForum) && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-gray-50/50 p-2 rounded-lg border border-gray-100/50 -mt-2 mb-1 px-3">
+                        <MessageCircle className="h-3.5 w-3.5 text-primary/60" />
+                        <span className="flex items-center gap-1">
+                            Membalas {idForum ? 'diskusi forum' : 'ulasan'}
+                            {parentUserName && (
+                                <>
+                                    <span>oleh</span>
+                                    <span className="font-semibold text-gray-700">@{parentUserName}</span>
+                                </>
+                            )}
+                        </span>
+                        <div className="h-3 w-px bg-gray-300 mx-1" />
+                        <Link
+                            to={idForum ? "/a/forum/$forumId" : "/a/ulasan/$ulasanId"}
+                            params={idForum ? { forumId: idForum } : { ulasanId: idReply! }}
+                            search={{ focus: false }}
+                            className="text-primary hover:underline font-bold"
+                        >
+                            Lihat Detail
+                        </Link>
                     </div>
                 )}
-                <ImageLightbox
-                    images={files.filter(isImage)}
-                    initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
-                    isOpen={selectedImageIndex !== null}
-                    onClose={() => setSelectedImageIndex(null)}
-                />
+                <div className="flex items-start gap-8">
+                    <div className="w-full">
+                        {!isReply ? (
+                            <div className="flex flex-col gap-2">
+                                {type ? (
+                                    <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
+                                ) : null}
+                                <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: false }}>
+                                    <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline">{title == "" ? "No Title" : title}</h3>
+                                </Link>
+                            </div>
+                        ) : null}
+                        <p className={`  leading-relaxed text-justify line-clamp-5 ${isReply ? 'text-base text-gray-950' : 'text-sm text-gray-500'}`}>{content}</p>
+                    </div>
+                    {files && files.length > 0 && (
+                        <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
+                            {files.length === 1 ? (
+                                <div
+                                    className="block w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isImage(files[0])) setSelectedImageIndex(0);
+                                        else window.open(files[0], '_blank');
+                                    }}
+                                >
+                                    {isImage(files[0]) ? (
+                                        <img
+                                            src={files[0]}
+                                            alt="Review attachment"
+                                            className="w-full h-32 object-cover rounded-lg"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-32 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-4 text-gray-500 border border-gray-200">
+                                            <FileText className="h-8 w-8 mb-2" />
+                                            <span className="text-xs text-center truncate w-full px-2">{getFileName(files[0])}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className={`grid gap-1 ${files.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
+                                    {files.slice(0, 4).map((file, index) => (
+                                        <div
+                                            key={index}
+                                            className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && files.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
+                                                }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isImage(file)) setSelectedImageIndex(index);
+                                                else window.open(file, '_blank');
+                                            }}
+                                        >
+                                            {isImage(file) ? (
+                                                <img
+                                                    src={file}
+                                                    alt={`Review attachment ${index + 1}`}
+                                                    className={`w-full object-cover rounded ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                        }`}
+                                                />
+                                            ) : (
+                                                <div className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                    }`}>
+                                                    <FileText className="h-4 w-4 mb-1" />
+                                                    <span className="text-[10px] text-center truncate w-full">{index === 0 && files.length > 1 ? getFileName(file) : 'PDF'}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <ImageLightbox
+                        images={files.filter(isImage)}
+                        initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
+                        isOpen={selectedImageIndex !== null}
+                        onClose={() => setSelectedImageIndex(null)}
+                    />
+                </div>
             </CardContent>
             <CardFooter className="flex items-center justify-between">
                 {!isReply ? (

@@ -218,6 +218,9 @@ function ContentList({ ulasan, forums, isLoading, emptyMessage }: ContentListPro
               likeCount={item.total_likes ?? 0}
               isLiked={!!item.is_liked}
               isBookmarked={!!item.is_bookmarked}
+              idReply={item.id_reply}
+              idForum={item.id_forum}
+              parentUserName={item.parent_user_name}
             />
           ) : (
             <ForumCard

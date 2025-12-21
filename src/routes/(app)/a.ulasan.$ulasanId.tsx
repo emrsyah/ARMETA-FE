@@ -203,6 +203,39 @@ function UlasanDetailPage() {
           Kembali ke Beranda
         </Link>
 
+        {/* Parent Context (if it's a reply) */}
+        {(() => {
+          const parentSource = ulasan?.parent_source
+          if (!parentSource) return null
+
+          return (
+            <div className="relative px-4 sm:px-0">
+              {/* Connection Line */}
+              <div className="absolute left-[30px] top-10 bottom-[-24px] w-0.5 bg-linear-to-b from-gray-200 to-gray-200 z-0" />
+
+              {parentSource.type === 'review' ? (
+                <Link
+                  to="/a/ulasan/$ulasanId"
+                  params={{ ulasanId: parentSource.id }}
+                  search={{ focus: false }}
+                  className="group block mb-6 relative z-10"
+                >
+                  <ParentPreview source={parentSource} />
+                </Link>
+              ) : (
+                <Link
+                  to="/a/forum/$forumId"
+                  params={{ forumId: parentSource.id }}
+                  search={{ focus: false }}
+                  className="group block mb-6 relative z-10"
+                >
+                  <ParentPreview source={parentSource} />
+                </Link>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Ulasan Detail Card */}
         <Card className="overflow-hidden">
           <CardHeader className="border-b">
@@ -210,7 +243,7 @@ function UlasanDetailPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={ulasan?.is_anonymous ? undefined : ulasan?.user?.image || ""} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
+                  <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 text-primary font-medium">
                     {ulasan?.is_anonymous ? "?" : ulasan?.user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -450,6 +483,37 @@ function UlasanDetailPage() {
         </div>
       </div>
     </LayoutGroup>
+  )
+}
+
+function ParentPreview({ source }: { source: any }) {
+  return (
+    <div className="flex gap-4">
+      <div className="relative">
+        <Avatar className="h-12 w-12 border-2 border-white shadow-sm group-hover:ring-4 ring-primary/10 transition-all duration-300">
+          <AvatarImage src={source.user.image || ""} />
+          <AvatarFallback className="bg-gray-100 text-gray-500 font-medium">
+            {source.user.name?.charAt(0).toUpperCase() || "?"}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+      <div className="flex-1 py-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">
+            {source.user.name}
+          </span>
+          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded uppercase tracking-wider font-bold">
+            {source.type === 'review' ? 'Ulasan' : 'Forum'}
+          </span>
+          <span className="text-xs text-gray-400">
+            {new Date(source.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+          </span>
+        </div>
+        <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed italic">
+          "{source.body || source.title}"
+        </p>
+      </div>
+    </div>
   )
 }
 
