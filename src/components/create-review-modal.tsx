@@ -79,6 +79,18 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
     const currentFiles = form.getValues('files') || []
+
+    if (currentFiles.length + selectedFiles.length > 4) {
+      toast.error('Maksimal 4 file yang dapat diunggah')
+      return
+    }
+
+    const overSizedFiles = selectedFiles.filter(file => file.size > 10 * 1024 * 1024)
+    if (overSizedFiles.length > 0) {
+      toast.error('Ukuran file maksimal 10MB per file')
+      return
+    }
+
     form.setValue('files', [...currentFiles, ...selectedFiles])
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -280,9 +292,10 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId }: Props) =>
                   />
                   <button
                     type="button"
+                    disabled={files.length >= 4}
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Lampirkan file"
+                    className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={files.length >= 4 ? "Maksimal 4 file" : "Lampirkan file"}
                   >
                     <Paperclip className="size-5" />
                   </button>
