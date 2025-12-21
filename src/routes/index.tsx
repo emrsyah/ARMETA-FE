@@ -13,6 +13,9 @@ type LoginSearch = {
 
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
+    // Skip check on server because tokens are in localStorage
+    if (typeof window === 'undefined') return
+
     try {
       const user = await context.queryClient.ensureQueryData(profileQueryOptions())
       if (user) {

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useMatch, redirect } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatch, redirect, isRedirect } from '@tanstack/react-router'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TopNavigation } from '@/components/top-navigation'
@@ -18,9 +18,13 @@ export type FilterSearch = {
 
 export const Route = createFileRoute('/(app)/a')({
   beforeLoad: async ({ context }) => {
+    // Skip auth check on server because tokens are in localStorage
+    if (typeof window === 'undefined') return
+
     try {
       await context.queryClient.ensureQueryData(profileQueryOptions())
     } catch (error) {
+      if (isRedirect(error)) throw error
       throw redirect({
         to: '/',
       })

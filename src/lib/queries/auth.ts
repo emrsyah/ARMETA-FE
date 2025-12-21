@@ -13,6 +13,9 @@ export function useLogout() {
       return response.data
     },
     onSuccess: () => {
+      // Clear tokens from localStorage
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
       // Clear all cached data on logout
       queryClient.clear()
     },
