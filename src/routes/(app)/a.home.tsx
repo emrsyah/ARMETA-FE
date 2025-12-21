@@ -103,8 +103,9 @@ function HomePage() {
                 <ReviewCard
                   key={ulasan.id_review}
                   id={ulasan.id_review}
-                  subjectName={ulasan.lecturer_name != "" ? ulasan.lecturer_name : ulasan.subject_name != "" ? ulasan.subject_name : ""}
-                  type={ulasan.lecturer_name != "" ? "dosen" : ulasan.subject_name != "" ? "matkul" : undefined}
+                  subjectName={ulasan.subject_name}
+                  lecturerName={ulasan.lecturer_name}
+                  isReply={!!(ulasan.id_reply || ulasan.id_forum)}
                   userName={ulasan.user?.name || 'User'}
                   avatarFallback="U"
                   avatarUrl={ulasan.user?.image || 'U'}

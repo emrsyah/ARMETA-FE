@@ -268,8 +268,8 @@ function UlasanResultWrapper({ ulasan }: { ulasan: any }) {
             isBookmarked={ulasan.is_bookmarked}
             userId={ulasan.user?.id_user || ulasan.id_user}
             isAnonymous={ulasan.is_anonymous}
-            subjectName={ulasan.subject_name || ulasan.lecturer_name}
-            type={ulasan.lecturer_name ? 'dosen' : 'matkul'}
+            subjectName={ulasan.subject_name}
+            lecturerName={ulasan.lecturer_name}
         />
     )
 }

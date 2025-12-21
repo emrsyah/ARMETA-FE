@@ -27,7 +27,7 @@ type Props = {
     isBookmarked?: boolean;
     isReply?: boolean;
     subjectName?: string;
-    type?: 'dosen' | 'matkul';
+    lecturerName?: string;
     isAnonymous?: boolean;
     idReply?: string | null;
     idForum?: string | null;
@@ -50,7 +50,7 @@ const ReviewCard = ({
     isBookmarked = false,
     isReply = false,
     subjectName,
-    type,
+    lecturerName,
     isAnonymous = false,
     idReply = null,
     idForum = null,
@@ -203,9 +203,18 @@ const ReviewCard = ({
                     <div className="w-full min-w-0">
                         {!isReply ? (
                             <div className="flex flex-col gap-2">
-                                {type ? (
-                                    <Badge variant={'outline'}>{type === 'dosen' ? 'Dosen' : "Matkul"}: {subjectName}</Badge>
-                                ) : null}
+                                <div className="flex flex-wrap gap-2">
+                                    {subjectName && (
+                                        <Badge variant={'outline'} className="bg-primary/5 border-primary/20 text-primary font-medium">
+                                            Matkul: {subjectName}
+                                        </Badge>
+                                    )}
+                                    {lecturerName && (
+                                        <Badge variant={'outline'} className="bg-indigo-500/5 border-indigo-500/20 text-indigo-600 font-medium">
+                                            Dosen: {lecturerName}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <Link to="/a/ulasan/$ulasanId" params={{ ulasanId: id }} search={{ focus: false }}>
                                     <h3 className="text-xl font-bold line-clamp-3 cursor-pointer hover:underline break-all">{title == "" ? "No Title" : title}</h3>
                                 </Link>

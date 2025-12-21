@@ -50,12 +50,14 @@ function ALayout() {
   const isArmePage = useMatch({ from: '/(app)/a/arme', shouldThrow: false })
   const isDetailForumPage = useMatch({ from: '/(app)/a/forum/$forumId', shouldThrow: false })
   const isDetailUlasanPage = useMatch({ from: '/(app)/a/ulasan/$ulasanId', shouldThrow: false })
+  const isProfilePage = useMatch({ from: '/(app)/a/profile', shouldThrow: false })
+  const isUserDetailPage = useMatch({ from: '/(app)/a/u/$userId', shouldThrow: false })
   const isForumPage = useMatch({ from: '/(app)/a/forum/', shouldThrow: false })
 
   // Determine current page type for sidebar filter
   const currentPage = isForumPage ? 'forum' : 'ulasan'
 
-  const showSidebarFilter = !isDetailForumPage && !isDetailUlasanPage && !isArmePage
+  const showSidebarFilter = !isDetailForumPage && !isDetailUlasanPage && !isArmePage && !isProfilePage && !isUserDetailPage
 
   return (
     <SidebarProvider>

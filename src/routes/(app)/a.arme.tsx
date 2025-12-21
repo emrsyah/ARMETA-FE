@@ -343,8 +343,9 @@ function ArmePage() {
                                         likeCount={ulasan.total_likes || 0}
                                         isLiked={!!ulasan.is_liked}
                                         isBookmarked={!!ulasan.is_bookmarked}
-                                        subjectName={ulasan.lecturer_name || ulasan.subject_name}
-                                        type={ulasan.lecturer_name ? 'dosen' : ulasan.subject_name ? 'matkul' : undefined}
+                                        subjectName={ulasan.subject_name}
+                                        lecturerName={ulasan.lecturer_name}
+                                        isReply={!!(ulasan.id_reply || ulasan.id_forum)}
                                       />
                                     </div>
                                   ))}

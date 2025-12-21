@@ -200,8 +200,9 @@ function ContentList({ ulasan, forums, isLoading, emptyMessage }: ContentListPro
                     {item.type === 'ulasan' ? (
                         <ReviewCard
                             id={item.id_review || item.id}
-                            subjectName={item.lecturer_name !== "" ? item.lecturer_name : item.subject_name !== "" ? item.subject_name : ""}
-                            type={item.lecturer_name !== "" ? "dosen" : item.subject_name !== "" ? "matkul" : undefined}
+                            subjectName={item.subject_name}
+                            lecturerName={item.lecturer_name}
+                            isReply={!!(item.id_reply || item.id_forum)}
                             userName={item.user?.name || 'User'}
                             userId={item.id_user || item.user?.id_user}
                             avatarFallback="U"
