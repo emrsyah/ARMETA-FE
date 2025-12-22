@@ -188,7 +188,7 @@ const CreateForumModal = ({ open, onOpenChange, editData }: Props) => {
                   <FormItem>
                     <FormLabel>Judul Forum</FormLabel>
                     <FormControl>
-                      <div className="relative">
+                      <div className="relative min-w-0 w-full">
                         <Input
                           {...field}
                           placeholder="Masukkan judul forum..."
@@ -214,7 +214,7 @@ const CreateForumModal = ({ open, onOpenChange, editData }: Props) => {
                   <FormItem>
                     <FormLabel>Isi Forum</FormLabel>
                     <FormControl>
-                      <div className="relative">
+                      <div className="relative min-w-0 w-full">
                         <Textarea
                           {...field}
                           placeholder="Masukkan isi forum..."

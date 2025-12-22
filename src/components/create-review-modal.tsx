@@ -239,7 +239,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
                     <FormItem>
                       <FormLabel>Judul {forumId ? 'Ulasan' : isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
                       <FormControl>
-                        <div className="relative">
+                        <div className="relative min-w-0 w-full">
                           <Input
                             {...field}
                             placeholder={`Masukkan judul ${forumId ? 'ulasan' : isReply ? 'balasan' : 'ulasan'}...`}
@@ -266,7 +266,7 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
                   <FormItem>
                     <FormLabel>Isi {forumId ? 'Ulasan' : isReply ? 'Balasan' : 'Ulasan'}</FormLabel>
                     <FormControl>
-                      <div className="relative">
+                      <div className="relative min-w-0 w-full">
                         <Textarea
                           {...field}
                           placeholder={`Tulis ${forumId ? 'ulasan' : isReply ? 'balasan' : 'ulasan'} Anda di sini...`}

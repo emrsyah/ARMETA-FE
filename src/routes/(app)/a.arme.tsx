@@ -132,7 +132,7 @@ function ArmePage() {
 
   const handleSubmit = (message: PromptInputMessage) => {
     const content = message.text?.trim()
-    if (content && status === 'ready') {
+    if (content && content.length <= 1500 && status === 'ready') {
       sendMessage({ text: content })
       setText('')
     }
@@ -219,7 +219,7 @@ function ArmePage() {
 
       {/* Conversation Area */}
       <Conversation>
-        <ConversationContent>
+        <ConversationContent className="min-h-full">
           {isLoadingMessages ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
               <div className="relative">
@@ -229,7 +229,7 @@ function ArmePage() {
               <p className="text-sm font-medium text-muted-foreground animate-pulse">Memuat percakapan...</p>
             </div>
           ) : !hasMessages ? (
-            <div className="flex flex-col justify-center items-center h-full space-y-6 px-4">
+            <div className="flex flex-col my-24 justify-center items-center h-full space-y-6 px-4">
               <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center animate-in zoom-in-50 duration-500">
                 <Bot className="w-10 h-10 text-primary" />
               </div>
@@ -580,12 +580,19 @@ function ArmePage() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={isLoading}
+                maxLength={1500}
                 className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
               />
             </PromptInputBody>
             <PromptInputFooter>
+              <div className={cn(
+                "text-[10px] font-medium transition-colors duration-200",
+                text.length >= 1400 ? "text-destructive" : "text-muted-foreground/50"
+              )}>
+                {text.length}/1500
+              </div>
               <PromptInputSubmit
-                disabled={isLoading || !text.trim()}
+                disabled={isLoading || !text.trim() || text.length > 1500}
                 status={status}
               />
             </PromptInputFooter>
