@@ -561,7 +561,7 @@ function ArmePage() {
               <MessageContent>
                 <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/20 rounded-2xl w-fit">
                   <Loader size={16} />
-                  <span className="text-sm italic font-medium">Arme sedang berpikir...</span>
+                  <span className="text-sm italic font-medium">ARME sedang berpikir...</span>
                 </div>
               </MessageContent>
             </Message>

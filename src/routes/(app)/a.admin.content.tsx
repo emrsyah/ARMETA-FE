@@ -55,10 +55,10 @@ function AdminContentManagement() {
     <div className="space-y-6">
       <Tabs defaultValue="lecturers" className="w-full">
         <TabsList className="bg-white/50 backdrop-blur-sm border-none shadow-sm p-1">
-          <TabsTrigger value="lecturers" className="data-[state=active]:bg-[#123980] data-[state=active]:text-white">
+          <TabsTrigger value="lecturers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <GraduationCap className="mr-2 h-4 w-4" /> Dosen
           </TabsTrigger>
-          <TabsTrigger value="subjects" className="data-[state=active]:bg-[#123980] data-[state=active]:text-white">
+          <TabsTrigger value="subjects" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <BookMarked className="mr-2 h-4 w-4" /> Mata Kuliah
           </TabsTrigger>
         </TabsList>
@@ -111,7 +111,7 @@ function LecturerTable({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Lectu
             <CardTitle>Manajemen Dosen</CardTitle>
             <p className="text-sm text-muted-foreground">List semua dosen yang terdaftar di sistem.</p>
           </div>
-          <Button onClick={onAdd} className="bg-[#123980] hover:bg-[#123980]/90">
+          <Button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="mr-2 h-4 w-4" /> Tambah Dosen
           </Button>
         </CardHeader>
@@ -198,7 +198,7 @@ function SubjectTable({ onAdd, onEdit }: { onAdd: () => void; onEdit: (s: Subjec
             <CardTitle>Manajemen Mata Kuliah</CardTitle>
             <p className="text-sm text-muted-foreground">List semua mata kuliah yang terdaftar di sistem.</p>
           </div>
-          <Button onClick={onAdd} className="bg-[#123980] hover:bg-[#123980]/90">
+          <Button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="mr-2 h-4 w-4" /> Tambah Matkul
           </Button>
         </CardHeader>
