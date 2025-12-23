@@ -153,7 +153,11 @@ function UlasanDetailPage() {
 
   const handleDelete = async () => {
     try {
-      await deleteUlasanMutation.mutateAsync(ulasanId)
+      await deleteUlasanMutation.mutateAsync({
+        id_review: ulasanId,
+        idReply: ulasan?.id_reply ?? undefined,
+        forumId: ulasan?.id_forum ?? undefined,
+      })
       toast.success("Ulasan berhasil dihapus")
       navigate({ to: '/a/home' })
     } catch (error) {

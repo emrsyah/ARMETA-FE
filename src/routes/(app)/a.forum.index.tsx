@@ -25,7 +25,7 @@ function ForumPage() {
   const filterParams = useMemo<GetAllForumInput | undefined>(() => {
     const dateRange = search.filter ? getDateRangeFromFilter(search.filter) : null
 
-    if (!dateRange && !search.sortBy) {
+    if (!dateRange && !search.sortBy && !search.id_subject) {
       return undefined
     }
 

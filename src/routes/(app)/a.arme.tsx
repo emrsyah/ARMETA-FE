@@ -164,7 +164,7 @@ function ArmePage() {
                 Riwayat Chat
               </SheetTitle>
             </SheetHeader>
-            <ScrollArea className="h-[calc(100vh-80px)]">
+            <ScrollArea className="h-[calc(100vh-80px)] line">
               <div className="p-4 space-y-2">
                 {historyData?.data.map((chat) => (
                   <button
@@ -186,7 +186,7 @@ function ArmePage() {
                       <MessageSquare className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-sm font-medium line-clamp-1">
                         {chat.title}
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-1">
@@ -286,11 +286,11 @@ function ArmePage() {
                                         {new URL(source.url).hostname}
                                       </span>
                                     </div>
-                                    <h4 className="text-sm font-semibold line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                                    <h4 className="text-sm font-semibold line-clamp-1 leading-tight group-hover:text-primary transition-colors">
                                       {source.title}
                                     </h4>
                                     {source.text && (
-                                      <p className="text-[11px] text-muted-foreground line-clamp-3 leading-relaxed">
+                                      <p className="text-[11px] text-muted-foreground line-clamp-1 leading-relaxed">
                                         {source.text.trim()}
                                       </p>
                                     )}

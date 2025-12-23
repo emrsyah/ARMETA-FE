@@ -197,17 +197,28 @@ export function useDeleteUlasan() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id_review: string) => {
+    mutationFn: async ({ id_review }: { id_review: string; forumId?: string; idReply?: string }) => {
       const response = await api.delete(ULASAN_ENDPOINTS.DELETE, {
         data: { id_review },
       })
       return response.data
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate ulasan list to refetch
       queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
-      // Also invalidate all to be safe
-      queryClient.invalidateQueries({ queryKey: ulasanKeys.all })
+
+      // If it was a reply to another ulasan, invalidate that parent's detail
+      if (variables.idReply) {
+        queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.idReply) })
+      }
+
+      // If it was a forum ulasan, invalidate the forum's detail
+      if (variables.forumId) {
+        queryClient.invalidateQueries({ queryKey: ['forum', 'detail', variables.forumId] })
+      }
+
+      // Also invalidate the specific detail for the deleted item itself (just in case)
+      queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.id_review) })
     },
   })
 }

@@ -30,7 +30,7 @@ export function Combobox({
   className,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
-  
+
   const selectedLabel = options.find(opt => opt.value === value)?.label
 
   return (

@@ -158,7 +158,11 @@ const ReviewCard = ({
 
     const handleDelete = async () => {
         try {
-            await deleteUlasanMutation.mutateAsync(id)
+            await deleteUlasanMutation.mutateAsync({
+                id_review: id,
+                idReply: idReply ?? undefined,
+                forumId: idForum ?? undefined
+            })
             toast.success("Ulasan berhasil dihapus")
             setIsDeleteDialogOpen(false)
         } catch (error) {
