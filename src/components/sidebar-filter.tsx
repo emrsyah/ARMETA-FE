@@ -143,6 +143,17 @@ const SidebarFilter = ({ currentPage }: SidebarFilterProps) => {
         />
       )}
 
+      {/* Only show sorting for forum page - ulasan API doesn't support sorting */}
+      {currentPage === 'forum' && (
+        <FilterSection
+          icon={ChartNoAxesColumnDecreasing}
+          title="Sorting"
+          options={SORTING_OPTIONS}
+          activeValue={search.sortBy}
+          onSelect={(val) => handleParamChange({ sortBy: val })}
+        />
+      )}
+
       {(search.filter || search.id_lecturer || search.id_subject || search.sortBy) && (
         <div className="p-4">
           <Button

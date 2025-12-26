@@ -57,7 +57,7 @@ function HomePage() {
       <CreateReviewModal open={openCreateReviewModal} onOpenChange={setOpenCreateReviewModal} />
       <div className="space-y-6 pb-20">
         <h1 className="text-3xl font-bold text-gray-900">
-          Selamat datang{' '}
+          Selamat datang, {' '}
           {isUserLoading ? (
             <Skeleton className="inline-block h-8 w-40" />
           ) : (
