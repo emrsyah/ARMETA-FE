@@ -63,7 +63,7 @@ function SearchPage() {
                 </div>
                 <h2 className="text-3xl font-extrabold text-foreground mb-4">Mulai Pencarian Anda</h2>
                 <p className="text-muted-foreground max-w-md mx-auto text-lg leading-relaxed">
-                    Temukan ulasan mata kuliah, informasi dosen, dan diskusi forum yang Anda butuhkan dengan mengetikkan kata kunci di atas.
+                    Temukan ulasan mata kuliah, informasi dosen, dan diskusi forum yang Anda butuhkan dengan mengetikkan kata kuncinya di atas.
                 </p>
             </div>
         )
