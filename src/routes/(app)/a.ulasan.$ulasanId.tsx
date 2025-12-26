@@ -100,6 +100,19 @@ function UlasanDetailPage() {
     }
   }, [ulasan, isMutating, isUlasanRefetching])
 
+  // Ensure files is an array (handle case where it might be a JSON string or null)
+  const normalizedFiles = Array.isArray(ulasan?.files)
+    ? ulasan.files
+    : typeof ulasan?.files === 'string'
+      ? (() => {
+        try {
+          return JSON.parse(ulasan.files) as string[]
+        } catch {
+          return []
+        }
+      })()
+      : []
+
   // Replies are now fetched with the ulasan detail
   const replies = ulasan?.replies || []
 
@@ -233,8 +246,8 @@ function UlasanDetailPage() {
 
       {/* Image Lightbox */}
       <ImageLightbox
-        images={ulasan?.files?.filter(isImage) || []}
-        initialIndex={selectedImageIndex !== null ? ulasan?.files?.filter(isImage).indexOf(ulasan.files[selectedImageIndex]) ?? 0 : 0}
+        images={normalizedFiles.filter(isImage)}
+        initialIndex={selectedImageIndex !== null ? normalizedFiles.filter(isImage).indexOf(normalizedFiles[selectedImageIndex] as string) : 0}
         isOpen={selectedImageIndex !== null}
         onClose={() => setSelectedImageIndex(null)}
       />
@@ -440,21 +453,21 @@ function UlasanDetailPage() {
             </div>
 
             {/* Files */}
-            {ulasan?.files && ulasan.files.length > 0 && (
+            {normalizedFiles.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ImageIcon className="h-4 w-4" />
-                  <span>{ulasan.files.length} Lampiran</span>
+                  <span>{normalizedFiles.length} Lampiran</span>
                 </div>
                 <div
-                  className={`grid gap-2 ${ulasan.files.length === 1
+                  className={`grid gap-2 ${normalizedFiles.length === 1
                     ? 'grid-cols-1'
-                    : ulasan.files.length === 2
+                    : normalizedFiles.length === 2
                       ? 'grid-cols-2'
                       : 'grid-cols-3'
                     }`}
                 >
-                  {ulasan.files.map((file, index) => {
+                  {normalizedFiles.map((file, index) => {
                     if (isImage(file)) {
                       return (
                         <button

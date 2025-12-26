@@ -70,6 +70,19 @@ function ForumDetailPage() {
     }
   }, [forum])
 
+  // Ensure files is an array (handle case where it might be a JSON string or null)
+  const normalizedFiles = Array.isArray(forum?.files)
+    ? forum.files
+    : typeof forum?.files === 'string'
+      ? (() => {
+        try {
+          return JSON.parse(forum.files) as string[]
+        } catch {
+          return []
+        }
+      })()
+      : []
+
   const { focus } = Route.useSearch()
 
   useEffect(() => {
@@ -189,8 +202,8 @@ function ForumDetailPage() {
     <LayoutGroup>
       {/* Image Lightbox */}
       <ImageLightbox
-        images={forum?.files?.filter(isImage) || []}
-        initialIndex={selectedImageIndex !== null ? forum?.files?.filter(isImage).indexOf(forum.files[selectedImageIndex]) ?? 0 : 0}
+        images={normalizedFiles.filter(isImage)}
+        initialIndex={selectedImageIndex !== null ? normalizedFiles.filter(isImage).indexOf(normalizedFiles[selectedImageIndex] as string) : 0}
         isOpen={selectedImageIndex !== null}
         onClose={() => setSelectedImageIndex(null)}
       />
@@ -242,21 +255,21 @@ function ForumDetailPage() {
             </div>
 
             {/* Files Section */}
-            {forum?.files && forum.files.length > 0 && (
+            {normalizedFiles.length > 0 && (
               <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ImageIcon className="h-4 w-4" />
-                  <span>{forum.files.length} Lampiran</span>
+                  <span>{normalizedFiles.length} Lampiran</span>
                 </div>
                 <div
-                  className={`grid gap-2 ${forum.files.length === 1
+                  className={`grid gap-2 ${normalizedFiles.length === 1
                     ? 'grid-cols-1'
-                    : forum.files.length === 2
+                    : normalizedFiles.length === 2
                       ? 'grid-cols-2'
                       : 'grid-cols-3'
                     }`}
                 >
-                  {forum.files.map((file, index) => {
+                  {normalizedFiles.map((file, index) => {
                     if (isImage(file)) {
                       return (
                         <button

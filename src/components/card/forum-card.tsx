@@ -102,6 +102,19 @@ const ForumCard = ({
         setLocalBookmarkCount(total_bookmark)
     }, [is_liked, total_like, is_bookmarked, total_bookmark])
 
+    // Ensure files is an array (handle case where it might be a JSON string or null)
+    const normalizedFiles = Array.isArray(files)
+        ? files
+        : typeof files === 'string'
+            ? (() => {
+                try {
+                    return JSON.parse(files) as string[]
+                } catch {
+                    return []
+                }
+            })()
+            : []
+
     // Mutations
     const likeMutation = useLikeForum()
     const unlikeMutation = useUnlikeForum()
@@ -297,9 +310,9 @@ const ForumCard = ({
                     </div>
                 )}
                 {/* Image Attachments */}
-                {files && files.length > 0 && (
+                {normalizedFiles.length > 0 && (
                     <div className="mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {files.map((file, index) => (
+                        {normalizedFiles.map((file, index) => (
                             <div
                                 key={index}
                                 className="shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
@@ -326,8 +339,8 @@ const ForumCard = ({
                     </div>
                 )}
                 <ImageLightbox
-                    images={files.filter(isImage)}
-                    initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
+                    images={normalizedFiles.filter(isImage)}
+                    initialIndex={selectedImageIndex !== null ? normalizedFiles.filter(isImage).indexOf(normalizedFiles[selectedImageIndex] as string) : 0}
                     isOpen={selectedImageIndex !== null}
                     onClose={() => setSelectedImageIndex(null)}
                 />

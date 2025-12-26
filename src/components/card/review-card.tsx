@@ -98,6 +98,19 @@ const ReviewCard = ({
         setCurrentBookmarkCount(bookmarkCount)
     }, [isLiked, isBookmarked, likeCount, bookmarkCount])
 
+    // Ensure files is an array (handle case where it might be a JSON string or null)
+    const normalizedFiles = Array.isArray(files)
+        ? files
+        : typeof files === 'string'
+            ? (() => {
+                try {
+                    return JSON.parse(files) as string[]
+                } catch {
+                    return []
+                }
+            })()
+            : []
+
     const likeMutation = useLikeUlasan()
     const unlikeMutation = useUnlikeUlasan()
     const bookmarkMutation = useBookmarkUlasan()
@@ -335,36 +348,36 @@ const ReviewCard = ({
                             )}
                         </div>
                     </div>
-                    {files && files.length > 0 && (
-                        <div className="shrink-0 w-64 gap-1 rounded-lg overflow-hidden">
-                            {files.length === 1 ? (
+                    {normalizedFiles && normalizedFiles.length > 0 && (
+                        <div className="shrink-0 w-64 gap-1 rounded-lg overflow-x-hidden overflow-y-hidden">
+                            {normalizedFiles.length === 1 ? (
                                 <div
                                     className="block w-full cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (isImage(files[0])) setSelectedImageIndex(0);
-                                        else window.open(files[0], '_blank');
+                                        if (isImage(normalizedFiles[0])) setSelectedImageIndex(0);
+                                        else window.open(normalizedFiles[0], '_blank');
                                     }}
                                 >
-                                    {isImage(files[0]) ? (
+                                    {isImage(normalizedFiles[0]) ? (
                                         <img
-                                            src={files[0]}
+                                            src={normalizedFiles[0]}
                                             alt="Review attachment"
                                             className="w-full h-32 object-cover rounded-lg"
                                         />
                                     ) : (
                                         <div className="w-full h-32 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-4 text-gray-500 border border-gray-200">
                                             <FileText className="h-8 w-8 mb-2" />
-                                            <span className="text-xs text-center truncate w-full px-2">{getFileName(files[0])}</span>
+                                            <span className="text-xs text-center truncate w-full px-2">{getFileName(normalizedFiles[0])}</span>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className={`grid gap-1 ${files.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
-                                    {files.slice(0, 4).map((file, index) => (
+                                <div className={`grid gap-1 ${normalizedFiles.length === 2 ? 'grid-cols-2' : 'grid-cols-3 grid-rows-2'}`}>
+                                    {normalizedFiles.slice(0, 4).map((file, index) => (
                                         <div
                                             key={index}
-                                            className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && files.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
+                                            className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && normalizedFiles.length > 1 ? 'col-span-3 row-span-1' : 'col-span-1'
                                                 }`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -376,14 +389,14 @@ const ReviewCard = ({
                                                 <img
                                                     src={file}
                                                     alt={`Review attachment ${index + 1}`}
-                                                    className={`w-full object-cover rounded ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                    className={`w-full object-cover rounded ${index === 0 && normalizedFiles.length > 1 ? 'h-24' : 'h-16'
                                                         }`}
                                                 />
                                             ) : (
-                                                <div className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && files.length > 1 ? 'h-24' : 'h-16'
+                                                <div className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && normalizedFiles.length > 1 ? 'h-24' : 'h-16'
                                                     }`}>
                                                     <FileText className="h-4 w-4 mb-1" />
-                                                    <span className="text-[10px] text-center truncate w-full">{index === 0 && files.length > 1 ? getFileName(file) : 'PDF'}</span>
+                                                    <span className="text-[10px] text-center truncate w-full">{index === 0 && normalizedFiles.length > 1 ? getFileName(file) : 'PDF'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -393,8 +406,8 @@ const ReviewCard = ({
                         </div>
                     )}
                     <ImageLightbox
-                        images={files.filter(isImage)}
-                        initialIndex={selectedImageIndex !== null ? files.filter(isImage).indexOf(files[selectedImageIndex]) : 0}
+                        images={normalizedFiles.filter(isImage)}
+                        initialIndex={selectedImageIndex !== null ? normalizedFiles.filter(isImage).indexOf(normalizedFiles[selectedImageIndex] as string) : 0}
                         isOpen={selectedImageIndex !== null}
                         onClose={() => setSelectedImageIndex(null)}
                     />
