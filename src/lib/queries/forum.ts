@@ -7,8 +7,27 @@ import type {
   ForumListResponse,
   CreateForumInput,
   EditForumInput,
-  GetAllForumInput,
+  GetAllForumInput as BaseGetAllForumInput,
 } from '../schemas/forum.schema'
+
+// --- TAMBAHAN: Definisi Sorting & Type Extension ---
+export const FORUM_SORT_OPTIONS = {
+  LATEST: 'date',
+  MOST_LIKED: 'most_like',
+  MOST_BOOKMARKED: 'most_bookmark',
+  POPULAR: 'most_popular',
+  MOST_REPLY: 'most_reply',
+} as const
+
+export type ForumSortOption = typeof FORUM_SORT_OPTIONS[keyof typeof FORUM_SORT_OPTIONS]
+
+// Memperluas tipe input agar mendukung search 'q' dan custom 'sortBy'
+export interface GetAllForumInput extends Omit<BaseGetAllForumInput, 'sortBy'> {
+  sortBy?: ForumSortOption;
+  q?: string; // Tambahan untuk search query
+  search?: string; // Alias untuk q (jika backend pakai 'search')
+}
+// ---------------------------------------------------
 
 // Query Keys Factory
 export const forumKeys = {
@@ -16,12 +35,13 @@ export const forumKeys = {
   lists: (filters?: GetAllForumInput) => [...forumKeys.all, 'list', filters] as const,
   bySubject: (subjectId: string) => [...forumKeys.all, 'subject', subjectId] as const,
   detail: (id: string) => [...forumKeys.all, 'detail', id] as const,
-  search: (keyword: string) => [...forumKeys.all, 'search', keyword] as const,
+  // Update key search agar unik berdasarkan semua parameter filter
+  search: (params: GetAllForumInput) => [...forumKeys.all, 'search', params] as const,
   liked: (userId?: string) => [...forumKeys.all, 'liked', userId] as const,
   bookmarked: () => [...forumKeys.all, 'bookmarked'] as const,
 }
 
-// Query Options (for use in route loaders)
+// ... (Query Options lain tetap sama) ...
 export const forumListQueryOptions = (filters?: GetAllForumInput) =>
   queryOptions({
     queryKey: forumKeys.lists(filters),
@@ -77,7 +97,7 @@ export const bookmarkedForumQueryOptions = () =>
     },
   })
 
-// Query: Get all forums (with optional filters/sorting)
+// Query: Get all forums (list biasa)
 export function useForumList(filters?: GetAllForumInput) {
   return useQuery(forumListQueryOptions(filters))
 }
@@ -102,46 +122,47 @@ export function useInfiniteForumList(filters?: GetAllForumInput) {
   })
 }
 
-// Query: Get forums by subject
+// ... (Hooks bySubject, Detail, Liked, Bookmarked tetap sama) ...
 export function useForumsBySubject(subjectId: string) {
   return useQuery(forumsBySubjectQueryOptions(subjectId))
 }
 
-// Query: Get single forum by ID
 export function useForumDetail(forumId: string) {
   return useQuery(forumDetailQueryOptions(forumId))
 }
 
-// Query: Get liked forums
 export function useLikedForum(userId?: string) {
   return useQuery(likedForumQueryOptions(userId))
 }
 
-// Query: Get bookmarked forums
 export function useBookmarkedForum() {
   return useQuery(bookmarkedForumQueryOptions())
 }
 
-// Query: Search forums by keyword
-export function useSearchForum(keyword: string) {
+// --- UPDATE PENTING: useSearchForum ---
+// Sekarang menerima object params, bukan cuma string keyword
+export function useSearchForum(params: GetAllForumInput) {
   return useQuery({
-    queryKey: forumKeys.search(keyword),
+    queryKey: forumKeys.search(params),
     queryFn: async () => {
-      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.SEARCH, {
-        params: { q: keyword },
+      // Menggunakan GET_ALL karena controller ini yang sudah dimodifikasi support search + filter
+      const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_ALL, {
+        params: {
+          search: params.q, // Backend pakai 'search', frontend pakai 'q', kita mapping di sini
+          ...params
+        },
       })
       return response.data.data
     },
-    enabled: keyword.length > 0,
+    // Query hanya jalan jika ada parameter q (search query)
+    enabled: !!params.q && params.q.length > 0,
   })
 }
 
 
-
-// Mutation: Create forum
+// ... (Bagian Mutation Create, Edit, Delete, Like, Bookmark TETAP SAMA seperti file asli Anda) ...
 export function useCreateForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: CreateForumInput) => {
       const formData = new FormData()
@@ -152,14 +173,12 @@ export function useCreateForum() {
       if (data.files) {
         data.files.forEach((file) => formData.append('files', file))
       }
-
       const response = await api.post<ForumResponse>(FORUM_ENDPOINTS.CREATE, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       return response.data.data
     },
     onSuccess: (data) => {
-      // Invalidate forum lists
       queryClient.invalidateQueries({ queryKey: forumKeys.lists() })
       if (data.id_subject) {
         queryClient.invalidateQueries({ queryKey: forumKeys.bySubject(data.id_subject) })
@@ -168,10 +187,8 @@ export function useCreateForum() {
   })
 }
 
-// Mutation: Edit forum
 export function useEditForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: EditForumInput) => {
       const formData = new FormData()
@@ -182,7 +199,6 @@ export function useEditForum() {
       if (data.files) {
         data.files.forEach((file: File) => formData.append('files', file))
       }
-
       const response = await api.patch<ForumResponse>(FORUM_ENDPOINTS.EDIT, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
@@ -190,20 +206,16 @@ export function useEditForum() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: forumKeys.detail(data.id_forum) })
-      queryClient.invalidateQueries({ queryKey: forumKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ['forum', 'list'] })
     },
   })
 }
 
-// Mutation: Delete forum
 export function useDeleteForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (id_forum: string) => {
-      const response = await api.delete(FORUM_ENDPOINTS.DELETE, {
-        data: { id_forum },
-      })
+      const response = await api.delete(FORUM_ENDPOINTS.DELETE, { data: { id_forum } })
       return response.data
     },
     onSuccess: () => {
@@ -212,10 +224,8 @@ export function useDeleteForum() {
   })
 }
 
-// Mutation: Like forum
 export function useLikeForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (id_forum: string) => {
       const response = await api.post(FORUM_ENDPOINTS.LIKE, { id_forum })
@@ -227,10 +237,8 @@ export function useLikeForum() {
   })
 }
 
-// Mutation: Unlike forum
 export function useUnlikeForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (id_forum: string) => {
       const response = await api.delete(FORUM_ENDPOINTS.LIKE, { data: { id_forum } })
@@ -242,10 +250,8 @@ export function useUnlikeForum() {
   })
 }
 
-// Mutation: Bookmark forum
 export function useBookmarkForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (id_forum: string) => {
       const response = await api.post(FORUM_ENDPOINTS.BOOKMARK, { id_forum })
@@ -257,10 +263,8 @@ export function useBookmarkForum() {
   })
 }
 
-// Mutation: Unbookmark forum
 export function useUnbookmarkForum() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (id_forum: string) => {
       const response = await api.delete(FORUM_ENDPOINTS.BOOKMARK, { data: { id_forum } })
@@ -271,4 +275,3 @@ export function useUnbookmarkForum() {
     },
   })
 }
-

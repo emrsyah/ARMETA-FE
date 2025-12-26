@@ -9,22 +9,32 @@ import type {
   EditUlasanInput,
   SearchVectorUlasanInput,
   UlasanIdInput,
-  GetAllUlasanInput,
+  GetAllUlasanInput as BaseGetAllUlasanInput, // Alias
   Like,
   Bookmark,
 } from '../schemas/ulasan.schema'
 import type { ApiResponse } from '../api/types'
 
+// --- TAMBAHAN: Type Extension untuk Ulasan ---
+// Memperluas tipe input agar mendukung search 'q'
+export interface GetAllUlasanInput extends BaseGetAllUlasanInput {
+  q?: string;
+}
+// ----------------------------------------------
+
 export const ulasanKeys = {
   all: ['ulasan'] as const,
   lists: (filters?: GetAllUlasanInput) => [...ulasanKeys.all, 'list', filters] as const,
   detail: (id: string) => [...ulasanKeys.all, 'detail', id] as const,
+  // Update key search agar unik berdasarkan params object
+  searchText: (params: GetAllUlasanInput) => [...ulasanKeys.all, 'search-text', params] as const,
+  // (Search Vector mungkin tidak dipakai lagi, tapi biarkan saja jika ada)
   searchVector: (query: string) => [...ulasanKeys.all, 'search-vector', query] as const,
-  searchText: (query: string) => [...ulasanKeys.all, 'search-text', query] as const,
   liked: (userId?: string) => [...ulasanKeys.all, 'liked', userId] as const,
   bookmarked: () => [...ulasanKeys.all, 'bookmarked'] as const,
 }
 
+// ... (Query Options List, Liked, Bookmarked, Detail tetap sama) ...
 export const ulasanListQueryOptions = (filters?: GetAllUlasanInput) =>
   queryOptions({
     queryKey: ulasanKeys.lists(filters),
@@ -32,7 +42,6 @@ export const ulasanListQueryOptions = (filters?: GetAllUlasanInput) =>
       const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL, {
         params: filters,
       })
-
       return response.data.data
     },
   })
@@ -69,7 +78,7 @@ export const ulasanDetailQueryOptions = (ulasanId: string) =>
     enabled: !!ulasanId,
   })
 
-// Query: Get all ulasan (with optional filters/sorting)
+// Query: Get all ulasan (list biasa)
 export function useUlasanList(filters?: GetAllUlasanInput) {
   return useQuery(ulasanListQueryOptions(filters))
 }
@@ -94,62 +103,67 @@ export function useInfiniteUlasanList(filters?: GetAllUlasanInput) {
   })
 }
 
-// Query: Get liked ulasan
+// ... (Hooks Liked, Bookmarked, Detail tetap sama) ...
 export function useLikedUlasan(userId?: string) {
   return useQuery(likedUlasanQueryOptions(userId))
 }
 
-// Query: Get bookmarked ulasan
 export function useBookmarkedUlasan() {
   return useQuery(bookmarkedUlasanQueryOptions())
 }
 
-// Query: Get single ulasan by ID
 export function useUlasanDetail(ulasanId: string) {
   return useQuery(ulasanDetailQueryOptions(ulasanId))
 }
 
-// Mutation: Create ulasan
+// --- UPDATE PENTING: useSearchTextUlasan ---
+// Sekarang menerima object params, bukan cuma string keyword
+export function useSearchTextUlasan(params: GetAllUlasanInput) {
+  return useQuery({
+    queryKey: ulasanKeys.searchText(params),
+    queryFn: async () => {
+      // Menggunakan GET_ALL karena controller ini mendukung q + filter + sorting
+      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.GET_ALL, {
+        params: {
+            q: params.q, // Backend Ulasan pakai 'q'
+            ...params
+        },
+      })
+      return response.data.data
+    },
+    enabled: !!params.q && params.q.length > 0,
+  })
+}
+
+
+// ... (Bagian Mutation Create, Edit, Delete, dll TETAP SAMA seperti file asli Anda) ...
 export function useCreateUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: CreateUlasanInput) => {
       const formData = new FormData()
-
       formData.append('judulUlasan', data.judulUlasan)
       formData.append('textUlasan', data.textUlasan)
-
       if (data.idMatkul) formData.append('idMatkul', data.idMatkul)
       if (data.idDosen) formData.append('idDosen', data.idDosen)
       if (data.idReply) formData.append('idReply', data.idReply)
       if (data.idForum) formData.append('idForum', data.idForum)
       if (data.isAnonymous) formData.append('isAnonymous', String(data.isAnonymous))
-
       if (data.files) {
         data.files.forEach((file) => {
           formData.append('files', file)
         })
       }
-
       const response = await api.post<UlasanResponse>(ULASAN_ENDPOINTS.CREATE, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
       return response.data.data
     },
     onSuccess: (_, variables) => {
-      // Invalidate ulasan list to refetch
-      // Note: We invalidate all lists regardless of filters
       queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
-
-      // If this was a reply, invalidate the parent ulasan detail to fetch the new reply
       if (variables.idReply) {
         queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.idReply) })
       }
-
-      // If this was a forum reply, invalidate the forum detail to fetch the new reply
       if (variables.idForum) {
         queryClient.invalidateQueries({ queryKey: ['forum', 'detail', variables.idForum] })
       }
@@ -157,73 +171,52 @@ export function useCreateUlasan() {
   })
 }
 
-// Mutation: Edit ulasan
 export function useEditUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: EditUlasanInput) => {
       const formData = new FormData()
-
       formData.append('id_review', data.id_review)
       if (data.title) formData.append('title', data.title)
       if (data.body) formData.append('body', data.body)
       if (data.isAnonymous !== undefined) formData.append('isAnonymous', String(data.isAnonymous))
-
       if (data.files) {
         data.files.forEach((file: File) => {
           formData.append('files', file)
         })
       }
-
       const response = await api.patch<UlasanResponse>(ULASAN_ENDPOINTS.EDIT, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
       return response.data.data
     },
     onSuccess: (data) => {
-      // Update the specific ulasan in cache
       queryClient.setQueryData(ulasanKeys.detail(data.id_review), data)
-      // Invalidate lists to refetch
       queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
     },
   })
 }
 
-// Mutation: Delete ulasan
 export function useDeleteUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ id_review }: { id_review: string; forumId?: string; idReply?: string }) => {
-      const response = await api.delete(ULASAN_ENDPOINTS.DELETE, {
-        data: { id_review },
-      })
+      const response = await api.delete(ULASAN_ENDPOINTS.DELETE, { data: { id_review } })
       return response.data
     },
     onSuccess: (_, variables) => {
-      // Invalidate ulasan list to refetch
       queryClient.invalidateQueries({ queryKey: ['ulasan', 'list'] })
-
-      // If it was a reply to another ulasan, invalidate that parent's detail
       if (variables.idReply) {
         queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.idReply) })
       }
-
-      // If it was a forum ulasan, invalidate the forum's detail
       if (variables.forumId) {
         queryClient.invalidateQueries({ queryKey: ['forum', 'detail', variables.forumId] })
       }
-
-      // Also invalidate the specific detail for the deleted item itself (just in case)
       queryClient.invalidateQueries({ queryKey: ulasanKeys.detail(variables.id_review) })
     },
   })
 }
 
-// Mutation: Vector search ulasan (semantic similarity)
 export function useSearchVectorUlasan() {
   return useMutation({
     mutationFn: async (data: SearchVectorUlasanInput) => {
@@ -233,24 +226,8 @@ export function useSearchVectorUlasan() {
   })
 }
 
-// Query: Text search ulasan by keyword
-export function useSearchTextUlasan(keyword: string) {
-  return useQuery({
-    queryKey: ulasanKeys.searchText(keyword),
-    queryFn: async () => {
-      const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SEARCH_TEXT, {
-        params: { q: keyword },
-      })
-      return response.data.data
-    },
-    enabled: keyword.length > 0,
-  })
-}
-
-// Mutation: Like ulasan
 export function useLikeUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: UlasanIdInput) => {
       const response = await api.post<ApiResponse<Like>>(ULASAN_ENDPOINTS.LIKE, data)
@@ -262,10 +239,8 @@ export function useLikeUlasan() {
   })
 }
 
-// Mutation: Unlike ulasan
 export function useUnlikeUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: UlasanIdInput) => {
       const response = await api.delete<ApiResponse<Like>>(ULASAN_ENDPOINTS.LIKE, { data })
@@ -277,10 +252,8 @@ export function useUnlikeUlasan() {
   })
 }
 
-// Mutation: Bookmark ulasan
 export function useBookmarkUlasan() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: UlasanIdInput) => {
       const response = await api.post<ApiResponse<Bookmark>>(ULASAN_ENDPOINTS.BOOKMARK, data)
@@ -292,10 +265,8 @@ export function useBookmarkUlasan() {
   })
 }
 
-// Mutation: Remove bookmark
 export function useRemoveBookmark() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: UlasanIdInput) => {
       const response = await api.delete<ApiResponse<Bookmark>>(ULASAN_ENDPOINTS.BOOKMARK, { data })
@@ -306,4 +277,3 @@ export function useRemoveBookmark() {
     },
   })
 }
-

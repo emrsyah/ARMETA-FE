@@ -64,7 +64,7 @@ function FilterSection<T extends string>({
 }
 
 type SidebarFilterProps = {
-  currentPage: 'forum' | 'ulasan';
+  currentPage: 'forum' | 'ulasan' | 'search';
 };
 
 const SidebarFilter = ({ currentPage }: SidebarFilterProps) => {
@@ -145,6 +145,17 @@ const SidebarFilter = ({ currentPage }: SidebarFilterProps) => {
 
       {/* Only show sorting for forum page - ulasan API doesn't support sorting */}
       {currentPage === 'forum' && (
+        <FilterSection
+          icon={ChartNoAxesColumnDecreasing}
+          title="Sorting"
+          options={SORTING_OPTIONS}
+          activeValue={search.sortBy}
+          onSelect={(val) => handleParamChange({ sortBy: val })}
+        />
+      )}
+
+      {/* Only show sorting for forum page - ulasan API doesn't support sorting */}
+      {currentPage === 'search' && (
         <FilterSection
           icon={ChartNoAxesColumnDecreasing}
           title="Sorting"

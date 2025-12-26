@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+// Pastikan import tipe FilterSearch ada
+import { type FilterSearch } from './a' 
 import { useSearchForum, useSearchTextUlasan } from '@/lib/queries'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MessageSquare, FileText, Search as SearchIcon, ArrowRight } from 'lucide-react'
@@ -8,20 +10,21 @@ import ForumCard from '@/components/card/forum-card'
 import ReviewCard from '@/components/card/review-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { FilterSearch } from './a'
 
 export const Route = createFileRoute('/(app)/a/search')({
     component: SearchPage,
+    // Validasi ini sudah benar, memastikan filter/sort masuk ke URL
     validateSearch: (search: Record<string, unknown>): FilterSearch & { q: string } => {
         return {
             q: (search.q as string) || '',
             filter: search.filter as any,
             sortBy: search.sortBy as any,
             order: search.order as any,
+            id_lecturer: search.id_lecturer as string,
+            id_subject: search.id_subject as string,
         }
     },
 })
-
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -38,11 +41,15 @@ const itemVariants = {
 }
 
 function SearchPage() {
-    const { q } = Route.useSearch()
+    // 1. AMBIL SEMUA PARAMETER, BUKAN HANYA 'q'
+    const searchParams = Route.useSearch()
+    const { q } = searchParams
     const [activeTab, setActiveTab] = useState('all')
 
-    const forumsQuery = useSearchForum(q)
-    const ulasanQuery = useSearchTextUlasan(q)
+    // 2. LEMPAR SELURUH searchParams KE HOOKS
+    // React Query akan otomatis refetch jika object searchParams berubah
+    const forumsQuery = useSearchForum(searchParams)
+    const ulasanQuery = useSearchTextUlasan(searchParams)
 
     const isLoading = forumsQuery.isLoading || ulasanQuery.isLoading
     const forums = forumsQuery.data || []

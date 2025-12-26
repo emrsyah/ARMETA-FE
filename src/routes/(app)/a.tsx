@@ -53,9 +53,10 @@ export const Route = createFileRoute('/(app)/a')({
 function ALayout() {
   const isForumPage = useMatch({ from: '/(app)/a/forum/', shouldThrow: false })
   const isReviewPage = useMatch({ from: '/(app)/a/home', shouldThrow: false })
+  const isSearchPage = useMatch({ from: '/(app)/a/search', shouldThrow: false })
 
   // Determine current page type for sidebar filter
-  const currentPage = isForumPage ? 'forum' : 'ulasan'
+  const currentPage = isForumPage ? 'forum' : isReviewPage ? 'ulasan' : 'search'
 
   return (
     <SidebarProvider>
@@ -67,7 +68,7 @@ function ALayout() {
             <div className='flex-1 grow min-w-0'>
               <Outlet />
             </div>
-            {(isForumPage || isReviewPage) && <SidebarFilter currentPage={currentPage} />}
+            {(isForumPage || isReviewPage || isSearchPage) && <SidebarFilter currentPage={currentPage} />}
           </div>
         </div>
       </SidebarInset>
