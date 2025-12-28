@@ -123,12 +123,12 @@ const ForumCard = ({
 		? files
 		: typeof files === "string"
 			? (() => {
-					try {
-						return JSON.parse(files) as string[];
-					} catch {
-						return [];
-					}
-				})()
+				try {
+					return JSON.parse(files) as string[];
+				} catch {
+					return [];
+				}
+			})()
 			: [];
 
 	// Mutations
@@ -377,8 +377,8 @@ const ForumCard = ({
 					initialIndex={
 						selectedImageIndex !== null
 							? normalizedFiles
-									.filter(isImage)
-									.indexOf(normalizedFiles[selectedImageIndex] as string)
+								.filter(isImage)
+								.indexOf(normalizedFiles[selectedImageIndex] as string)
 							: 0
 					}
 					isOpen={selectedImageIndex !== null}

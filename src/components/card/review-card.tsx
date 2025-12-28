@@ -119,12 +119,12 @@ const ReviewCard = ({
 		? files
 		: typeof files === "string"
 			? (() => {
-					try {
-						return JSON.parse(files) as string[];
-					} catch {
-						return [];
-					}
-				})()
+				try {
+					return JSON.parse(files) as string[];
+				} catch {
+					return [];
+				}
+			})()
 			: [];
 
 	const likeMutation = useLikeUlasan();
@@ -421,11 +421,10 @@ const ReviewCard = ({
 									{normalizedFiles.slice(0, 4).map((file, index) => (
 										<div
 											key={index}
-											className={`cursor-pointer hover:opacity-90 transition-opacity block ${
-												index === 0 && normalizedFiles.length > 1
+											className={`cursor-pointer hover:opacity-90 transition-opacity block ${index === 0 && normalizedFiles.length > 1
 													? "col-span-3 row-span-1"
 													: "col-span-1"
-											}`}
+												}`}
 											onClick={(e) => {
 												e.stopPropagation();
 												if (isImage(file)) setSelectedImageIndex(index);
@@ -436,15 +435,13 @@ const ReviewCard = ({
 												<img
 													src={file}
 													alt={`Review attachment ${index + 1}`}
-													className={`w-full object-cover rounded ${
-														index === 0 && normalizedFiles.length > 1 ? "h-24" : "h-16"
-													}`}
+													className={`w-full object-cover rounded ${index === 0 && normalizedFiles.length > 1 ? "h-24" : "h-16"
+														}`}
 												/>
 											) : (
 												<div
-													className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${
-														index === 0 && normalizedFiles.length > 1 ? "h-24" : "h-16"
-													}`}
+													className={`w-full bg-gray-100 rounded flex flex-col items-center justify-center p-2 text-gray-500 border border-gray-200 ${index === 0 && normalizedFiles.length > 1 ? "h-24" : "h-16"
+														}`}
 												>
 													<FileText className="h-4 w-4 mb-1" />
 													<span className="text-[10px] text-center truncate w-full">
@@ -463,8 +460,8 @@ const ReviewCard = ({
 						initialIndex={
 							selectedImageIndex !== null
 								? normalizedFiles
-										.filter(isImage)
-										.indexOf(normalizedFiles[selectedImageIndex] as string)
+									.filter(isImage)
+									.indexOf(normalizedFiles[selectedImageIndex] as string)
 								: 0
 						}
 						isOpen={selectedImageIndex !== null}

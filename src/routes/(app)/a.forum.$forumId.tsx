@@ -82,12 +82,12 @@ function ForumDetailPage() {
 		? forum.files
 		: typeof forum?.files === "string"
 			? (() => {
-					try {
-						return JSON.parse(forum.files) as string[];
-					} catch {
-						return [];
-					}
-				})()
+				try {
+					return JSON.parse(forum.files) as string[];
+				} catch {
+					return [];
+				}
+			})()
 			: [];
 
 	const { focus } = Route.useSearch();
@@ -273,13 +273,12 @@ function ForumDetailPage() {
 									<span>{normalizedFiles.length} Lampiran</span>
 								</div>
 								<div
-									className={`grid gap-2 ${
-										normalizedFiles.length === 1
+									className={`grid gap-2 ${normalizedFiles.length === 1
 											? "grid-cols-1"
 											: normalizedFiles.length === 2
 												? "grid-cols-2"
 												: "grid-cols-3"
-									}`}
+										}`}
 								>
 									{normalizedFiles.map((file, index) => {
 										if (isImage(file)) {
@@ -341,10 +340,10 @@ function ForumDetailPage() {
 										<p className="text-xs text-muted-foreground">
 											{forum?.created_at
 												? new Date(forum.created_at).toLocaleDateString("id-ID", {
-														day: "numeric",
-														month: "long",
-														year: "numeric",
-													})
+													day: "numeric",
+													month: "long",
+													year: "numeric",
+												})
 												: "Tanggal tidak tersedia"}
 										</p>
 									</div>
@@ -365,10 +364,10 @@ function ForumDetailPage() {
 										<p className="text-xs text-muted-foreground">
 											{forum?.created_at
 												? new Date(forum.created_at).toLocaleDateString("id-ID", {
-														day: "numeric",
-														month: "long",
-														year: "numeric",
-													})
+													day: "numeric",
+													month: "long",
+													year: "numeric",
+												})
 												: "Tanggal tidak tersedia"}
 										</p>
 									</div>
