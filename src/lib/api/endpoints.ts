@@ -39,8 +39,6 @@ export const ULASAN_ENDPOINTS = {
   EDIT: '/api/ulasan/editUlasan',
   GET_ALL: '/api/ulasan/getUlasan',
   GET_BY_ID: '/api/ulasan/getUlasanById',
-  SEARCH_VECTOR: '/api/ulasan/search',
-  SEARCH_TEXT: '/api/ulasan/searchUlasan',
   FILTER: '/api/ulasan/filterUlasan',
   SORT: '/api/ulasan/sortUlasan',
   LIKE: '/api/ulasan/likeUlasan',
@@ -57,12 +55,10 @@ export const FORUM_ENDPOINTS = {
   GET_ALL: '/api/forum/getAllForum',
   GET_BY_ID: '/api/forum/getForumId',
   GET_BY_SUBJECT: '/api/forum/getForumSubject',
-  SEARCH: '/api/forum/searchForum',
   LIKE: '/api/forum/likeForum',
   GET_LIKED: '/api/forum/likeForum',
   BOOKMARK: '/api/forum/bookmarkForum',
   GET_BOOKMARKED: '/api/forum/bookmarkForum',
-  SEARCH_SIMILAR: '/api/forum/search',
 } as const
 
 export const REPORT_ENDPOINTS = {

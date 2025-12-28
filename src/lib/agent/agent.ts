@@ -31,32 +31,6 @@ const COMMON_SYSTEM_PROMPT = `
 
 export const getTools = (authToken?: string) => ({
     webSearch: tool(webSearch()),
-    get_similar_ulasan: tool({
-        description: 'Search for similar ulasan (reviews) based on a semantic query. Use this to find reviews about specific topics, lecturers, or subjects.',
-        inputSchema: z.object({
-            query: z.string().describe('The semantic search query'),
-            limit: z.number().optional().default(5).describe('Maximum number of results to return'),
-        }),
-        execute: async ({ query, limit }: { query: string; limit: number }): Promise<UlasanListItem[]> => {
-            const response = await api.post<SearchResponse>(ULASAN_ENDPOINTS.SEARCH_VECTOR, { query, limit }, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return (response.data.data as any).results || response.data.data;
-        },
-    }),
-    get_similar_forum: tool({
-        description: 'Search for similar forum posts based on a semantic query. Use this to find discussions about specific topics or questions.',
-        inputSchema: z.object({
-            query: z.string().describe('The semantic search query'),
-            limit: z.number().optional().default(5).describe('Maximum number of results to return'),
-        }),
-        execute: async ({ query, limit }: { query: string; limit: number }): Promise<Forum[]> => {
-            const response = await api.post<ForumListResponse>(FORUM_ENDPOINTS.SEARCH_SIMILAR, { query, limit }, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return (response.data.data as any).results || response.data.data;
-        },
-    }),
     get_ulasan_detail: tool({
         description: 'Get full content and all replies/comments for a specific ulasan (review).',
         inputSchema: z.object({ id_review: z.string().describe('The ID of the ulasan') }),
@@ -94,28 +68,6 @@ export const getTools = (authToken?: string) => ({
         inputSchema: z.object({}),
         execute: async () => {
             const response = await api.get<SubjectListResponse>(LECTURER_SUBJECT_ENDPOINTS.GET_SUBJECTS, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    search_ulasan_text: tool({
-        description: 'Search for ulasan using a keyword (exact match search).',
-        inputSchema: z.object({ query: z.string().describe('The keyword search query') }),
-        execute: async ({ query }: { query: string }): Promise<UlasanListItem[]> => {
-            const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SEARCH_TEXT, {
-                params: { q: query },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    search_forum_text: tool({
-        description: 'Search for forum posts using a keyword (exact match search).',
-        inputSchema: z.object({ query: z.string().describe('The keyword search query') }),
-        execute: async ({ query }: { query: string }): Promise<Forum[]> => {
-            const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.SEARCH, {
-                params: { q: query },
                 headers: authToken ? { Authorization: authToken } : undefined
             });
             return response.data.data;

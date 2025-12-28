@@ -217,15 +217,6 @@ export function useDeleteUlasan() {
   })
 }
 
-export function useSearchVectorUlasan() {
-  return useMutation({
-    mutationFn: async (data: SearchVectorUlasanInput) => {
-      const response = await api.post<SearchResponse>(ULASAN_ENDPOINTS.SEARCH_VECTOR, data)
-      return response.data.data
-    },
-  })
-}
-
 export function useLikeUlasan() {
   const queryClient = useQueryClient()
   return useMutation({

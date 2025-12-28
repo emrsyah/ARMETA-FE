@@ -370,7 +370,7 @@ function ForumDetailPage() {
                 <span>{forum?.total_reply ?? 0} Ulasan</span>
               </Button>
               <Button variant="ghost" size="sm" className="gap-2" onClick={handleBookmark}>
-                <Bookmark className={cn("h-4 w-4", localIsBookmarked && "fill-current text-yellow-500")} />
+                <Bookmark className={cn("h-4 w-4", localIsBookmarked && "fill-current text-blue-500")} />
                 <span>{localBookmarkCount} Simpan</span>
               </Button>
               <Button variant="ghost" size="sm" className="gap-2" onClick={handleLike}>

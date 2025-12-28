@@ -299,14 +299,6 @@ const ReviewCard = ({
                             )}
                         </span>
                         <div className="h-3 w-px bg-gray-300 mx-1" />
-                        <Link
-                            to={idForum ? "/a/forum/$forumId" : "/a/ulasan/$ulasanId"}
-                            params={idForum ? { forumId: idForum } : { ulasanId: idReply! }}
-                            search={{ focus: false }}
-                            className="text-primary hover:underline font-bold"
-                        >
-                            Lihat Detail
-                        </Link>
                     </div>
                 )}
                 <div className="flex items-start gap-8">

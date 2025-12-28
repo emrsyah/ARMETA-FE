@@ -354,7 +354,7 @@ const ForumCard = ({
                         </Button>
                     </Link>
                     <Button variant="ghost" onClick={handleBookmark}>
-                        <Bookmark className={cn(localIsBookmarked && "fill-current text-yellow-500")} />
+                        <Bookmark className={cn(localIsBookmarked && "fill-current text-blue-500")} />
                         <span>{localBookmarkCount}</span>
                     </Button>
                     <Button variant="ghost" onClick={handleLike}>
