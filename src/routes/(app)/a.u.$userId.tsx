@@ -152,7 +152,7 @@ interface ContentListProps {
 	emptyMessage: string;
 }
 
-function ContentList({ ulasan, forums, isLoading, emptyMessage }: ContentListProps) {
+function ContentList({ ulasan, forums, isLoading, emptyMessage }: Readonly<ContentListProps>) {
 	if (isLoading) {
 		return (
 			<div className="space-y-4">

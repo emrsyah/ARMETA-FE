@@ -1,19 +1,18 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { Ghost, Paperclip, X } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import { useLecturers, useSubjects } from "@/lib/queries/lecturer-subject";
 import { useCreateUlasan, useEditUlasan } from "@/lib/queries/ulasan";
 import { type CreateUlasanInput, createUlasanSchema } from "@/lib/schemas";
-import { Button } from "./ui/button";
+import { FilePreview } from "./shared/file-preview";
+import { FormFieldCounter } from "./shared/form-field-counter";
+import { PostActions } from "./shared/post-actions";
 import { Combobox } from "./ui/combobox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Switch } from "./ui/switch";
-import { Textarea } from "./ui/textarea";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 
 type Props = {
 	open: boolean;
@@ -31,8 +30,6 @@ type Props = {
 };
 
 const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }: Props) => {
-	const fileInputRef = useRef<HTMLInputElement>(null);
-
 	const { data: lecturers = [] } = useLecturers();
 	const { data: subjects = [] } = useSubjects();
 	const createUlasanMutation = useCreateUlasan();
@@ -66,61 +63,21 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
 		},
 	});
 
+	const { fileInputRef, handleFileSelect, removeFile, files } = useFileUpload(form);
+
 	// Reset form when modal opens/closes or props change
 	useEffect(() => {
 		if (open) {
-			if (editData) {
-				form.reset({
-					judulUlasan: editData.judulUlasan || (replyToId ? "reply" : ""),
-					textUlasan: editData.textUlasan,
-					files: [],
-					idDosen: editData.idDosen,
-					idMatkul: editData.idMatkul,
-					isAnonymous: editData.isAnonymous,
-				});
-			} else {
-				form.reset({
-					judulUlasan: replyToId ? "reply" : "",
-					textUlasan: "",
-					files: [],
-					idDosen: undefined,
-					idMatkul: undefined,
-					isAnonymous: false,
-				});
-			}
+			form.reset({
+				judulUlasan: editData?.judulUlasan || (replyToId ? "reply" : ""),
+				textUlasan: editData?.textUlasan || "",
+				files: [],
+				idDosen: editData?.idDosen,
+				idMatkul: editData?.idMatkul,
+				isAnonymous: editData?.isAnonymous || false,
+			});
 		}
 	}, [open, editData, replyToId, form]);
-
-	const files = form.watch("files") || [];
-
-	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const selectedFiles = Array.from(e.target.files || []);
-		const currentFiles = form.getValues("files") || [];
-
-		if (currentFiles.length + selectedFiles.length > 4) {
-			toast.error("Maksimal 4 file yang dapat diunggah");
-			return;
-		}
-
-		const overSizedFiles = selectedFiles.filter((file) => file.size > 10 * 1024 * 1024);
-		if (overSizedFiles.length > 0) {
-			toast.error("Ukuran file maksimal 10MB per file");
-			return;
-		}
-
-		form.setValue("files", [...currentFiles, ...selectedFiles]);
-		if (fileInputRef.current) {
-			fileInputRef.current.value = "";
-		}
-	};
-
-	const removeFile = (index: number) => {
-		const currentFiles = form.getValues("files") || [];
-		form.setValue(
-			"files",
-			currentFiles.filter((_, i) => i !== index)
-		);
-	};
 
 	const onSubmit = async (data: CreateUlasanInput) => {
 		try {
@@ -130,7 +87,6 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
 			}
 
 			if (editData) {
-				// Handle Edit
 				await editUlasanMutation.mutateAsync({
 					id_review: editData.id_review,
 					title: data.judulUlasan,
@@ -140,7 +96,6 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
 				});
 				toast.success("Ulasan berhasil diperbarui");
 			} else {
-				// Handle Create
 				const isReply = !!(replyToId || forumId);
 				if (!isReply && !data.idDosen && !data.idMatkul) {
 					toast.error("Pilih setidaknya satu Dosen atau Mata Kuliah");
@@ -197,7 +152,6 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
 
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-							{/* Select Dosen/Matkul - Hide if replying or editing */}
 							{!isReply && !isEdit && (
 								<div className="grid grid-cols-2 gap-4">
 									<FormField
@@ -239,130 +193,45 @@ const CreateReviewModal = ({ open, onOpenChange, replyToId, forumId, editData }:
 								</div>
 							)}
 
-							{/* Title - Hide if replying to a review, but show if for forum or root ulasan */}
 							{!replyToId && (
-								<FormField
-									name="judulUlasan"
+								<FormFieldCounter
 									control={form.control}
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>
-												Judul {forumId ? "Ulasan" : isReply ? "Balasan" : "Ulasan"}
-											</FormLabel>
-											<FormControl>
-												<div className="relative min-w-0 w-full">
-													<Input
-														{...field}
-														placeholder={`Masukkan judul ${forumId ? "ulasan" : isReply ? "balasan" : "ulasan"}...`}
-														autoFocus
-														maxLength={100}
-														className="pr-12"
-													/>
-													<div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
-														{field.value?.length || 0}/100
-													</div>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
+									name="judulUlasan"
+									label={`Judul ${forumId ? "Ulasan" : isReply ? "Balasan" : "Ulasan"}`}
+									placeholder={`Masukkan judul ${forumId ? "ulasan" : isReply ? "balasan" : "ulasan"}...`}
+									maxLength={100}
+									autoFocus
 								/>
 							)}
 
-							{/* Review Content */}
-							<FormField
-								name="textUlasan"
+							<FormFieldCounter
 								control={form.control}
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Isi {forumId ? "Ulasan" : isReply ? "Balasan" : "Ulasan"}</FormLabel>
-										<FormControl>
-											<div className="relative min-w-0 w-full">
-												<Textarea
-													{...field}
-													placeholder={`Tulis ${forumId ? "ulasan" : isReply ? "balasan" : "ulasan"} Anda di sini...`}
-													className="min-h-[120px] resize-none pb-6 pr-12"
-													maxLength={1000}
-												/>
-												<div className="absolute right-2 bottom-2 text-[10px] text-muted-foreground/50 pointer-events-none">
-													{field.value?.length || 0}/1000
-												</div>
-											</div>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
+								name="textUlasan"
+								label={`Isi ${forumId ? "Ulasan" : isReply ? "Balasan" : "Ulasan"}`}
+								placeholder={`Tulis ${forumId ? "ulasan" : isReply ? "balasan" : "ulasan"} Anda di sini...`}
+								maxLength={1000}
+								type="textarea"
+								className="min-h-[120px] resize-none pb-6"
 							/>
 
-							{/* Selected Files */}
-							{files.length > 0 && (
-								<div className="flex flex-wrap gap-2">
-									{files.map((file, index) => (
-										<div
-											key={index}
-											className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm"
-										>
-											<span className="truncate max-w-[150px]">{file.name}</span>
-											<button
-												type="button"
-												onClick={() => removeFile(index)}
-												className="text-muted-foreground hover:text-foreground"
-											>
-												<X className="size-3" />
-											</button>
-										</div>
-									))}
-								</div>
-							)}
+							<FilePreview files={files} onRemove={removeFile} />
 
-							{/* Bottom Actions */}
-							<div className="flex items-center justify-between pt-2">
-								<div className="flex items-center gap-3">
-									{/* File Upload */}
-									<input
-										ref={fileInputRef}
-										type="file"
-										multiple
-										accept="image/*"
-										onChange={handleFileSelect}
-										className="hidden"
-									/>
-									<button
-										type="button"
-										disabled={files.length >= 4}
-										onClick={() => fileInputRef.current?.click()}
-										className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-										title={files.length >= 4 ? "Maksimal 4 file" : "Lampirkan file"}
-									>
-										<Paperclip className="size-5" />
-									</button>
+							<input
+								ref={fileInputRef}
+								type="file"
+								multiple
+								accept="image/*"
+								onChange={handleFileSelect}
+								className="hidden"
+							/>
 
-									<FormField
-										control={form.control}
-										name="isAnonymous"
-										render={({ field }) => (
-											<FormItem className="flex flex-row items-center space-x-2 space-y-0 text-muted-foreground">
-												<FormControl>
-													<Switch checked={field.value} onCheckedChange={field.onChange} />
-												</FormControl>
-												<div className="flex items-center gap-1.5 leading-none">
-													<FormLabel className="text-sm font-medium cursor-pointer flex items-center gap-1">
-														<Ghost className="size-3.5" />
-														Anonim
-													</FormLabel>
-												</div>
-											</FormItem>
-										)}
-									/>
-								</div>
-
-								{/* Submit Buttons */}
-								<div className="flex gap-2">
-									<Button size={"lg"} type="submit" loading={isPending}>
-										{isEdit ? "Perbarui" : "Kirim"}
-									</Button>
-								</div>
-							</div>
+							<PostActions
+								control={form.control}
+								onFileClick={() => fileInputRef.current?.click()}
+								filesCount={files.length}
+								isPending={isPending}
+								submitLabel={isEdit ? "Perbarui" : "Kirim"}
+							/>
 						</form>
 					</Form>
 				</motion.div>
