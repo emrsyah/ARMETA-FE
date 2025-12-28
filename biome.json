@@ -47,5 +47,13 @@
 			"semicolons": "always",
 			"arrowParentheses": "always"
 		}
+	},
+	"css": {
+		"linter": {
+			"enabled": false
+		},
+		"formatter": {
+			"enabled": false
+		}
 	}
 }

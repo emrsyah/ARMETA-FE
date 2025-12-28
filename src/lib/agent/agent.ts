@@ -1,12 +1,17 @@
-import { google } from "@ai-sdk/google"
-import { webSearch } from "@exalabs/ai-sdk"
-import { Experimental_Agent as Agent, stepCountIs, tool, type InferUITools } from 'ai';
+import { google } from "@ai-sdk/google";
+import { webSearch } from "@exalabs/ai-sdk";
+import { Experimental_Agent as Agent, type InferUITools, stepCountIs, tool } from "ai";
 import z from "zod";
 import api from "../api/client";
 import { FORUM_ENDPOINTS, LECTURER_SUBJECT_ENDPOINTS, ULASAN_ENDPOINTS } from "../api/endpoints";
-import { SearchResponse, UlasanListItem, UlasanResponse, UlasanListResponse } from "../schemas/ulasan.schema";
-import { ForumListResponse, Forum, ForumDetailResponse } from "../schemas/forum.schema";
-import { LecturerListResponse, SubjectListResponse } from "../schemas/lecturer-subject.schema";
+import type { Forum, ForumDetailResponse, ForumListResponse } from "../schemas/forum.schema";
+import type { LecturerListResponse, SubjectListResponse } from "../schemas/lecturer-subject.schema";
+import type {
+	SearchResponse,
+	UlasanListItem,
+	UlasanListResponse,
+	UlasanResponse,
+} from "../schemas/ulasan.schema";
 
 const COMMON_SYSTEM_PROMPT = `
 <identity>
@@ -27,120 +32,140 @@ const COMMON_SYSTEM_PROMPT = `
 <guardrails>
 - You are not allowed to provide any information that is not related to the question.
 </guardrails>
-`
+`;
 
 export const getTools = (authToken?: string) => ({
-    webSearch: tool(webSearch()),
-    get_similar_ulasan: tool({
-        description: 'Search for similar ulasan (reviews) based on a semantic query. Use this to find reviews about specific topics, lecturers, or subjects.',
-        inputSchema: z.object({
-            query: z.string().describe('The semantic search query'),
-            limit: z.number().optional().default(5).describe('Maximum number of results to return'),
-        }),
-        execute: async ({ query, limit }: { query: string; limit: number }): Promise<UlasanListItem[]> => {
-            const response = await api.post<SearchResponse>(ULASAN_ENDPOINTS.SEARCH_VECTOR, { query, limit }, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return (response.data.data as any).results || response.data.data;
-        },
-    }),
-    get_similar_forum: tool({
-        description: 'Search for similar forum posts based on a semantic query. Use this to find discussions about specific topics or questions.',
-        inputSchema: z.object({
-            query: z.string().describe('The semantic search query'),
-            limit: z.number().optional().default(5).describe('Maximum number of results to return'),
-        }),
-        execute: async ({ query, limit }: { query: string; limit: number }): Promise<Forum[]> => {
-            const response = await api.post<ForumListResponse>(FORUM_ENDPOINTS.SEARCH_SIMILAR, { query, limit }, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return (response.data.data as any).results || response.data.data;
-        },
-    }),
-    get_ulasan_detail: tool({
-        description: 'Get full content and all replies/comments for a specific ulasan (review).',
-        inputSchema: z.object({ id_review: z.string().describe('The ID of the ulasan') }),
-        execute: async ({ id_review }: { id_review: string }) => {
-            const response = await api.get<UlasanResponse>(ULASAN_ENDPOINTS.GET_BY_ID, {
-                params: { id_review },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    get_forum_detail: tool({
-        description: 'Get full post content and all comments for a specific forum.',
-        inputSchema: z.object({ id_forum: z.string().describe('The ID of the forum') }),
-        execute: async ({ id_forum }: { id_forum: string }) => {
-            const response = await api.get<ForumDetailResponse>(FORUM_ENDPOINTS.GET_BY_ID, {
-                params: { id_forum },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    get_all_lecturers: tool({
-        description: 'Get a list of all lecturers in the system to find their names and IDs.',
-        inputSchema: z.object({}),
-        execute: async () => {
-            const response = await api.get<LecturerListResponse>(LECTURER_SUBJECT_ENDPOINTS.GET_LECTURERS, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    get_all_subjects: tool({
-        description: 'Get a list of all academic subjects in the system to find their codes, names, and IDs.',
-        inputSchema: z.object({}),
-        execute: async () => {
-            const response = await api.get<SubjectListResponse>(LECTURER_SUBJECT_ENDPOINTS.GET_SUBJECTS, {
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    search_ulasan_text: tool({
-        description: 'Search for ulasan using a keyword (exact match search).',
-        inputSchema: z.object({ query: z.string().describe('The keyword search query') }),
-        execute: async ({ query }: { query: string }): Promise<UlasanListItem[]> => {
-            const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SEARCH_TEXT, {
-                params: { q: query },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    search_forum_text: tool({
-        description: 'Search for forum posts using a keyword (exact match search).',
-        inputSchema: z.object({ query: z.string().describe('The keyword search query') }),
-        execute: async ({ query }: { query: string }): Promise<Forum[]> => {
-            const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.SEARCH, {
-                params: { q: query },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-    get_forums_by_subject: tool({
-        description: 'List all forum posts for a specific academic subject.',
-        inputSchema: z.object({ id_subject: z.string().describe('The ID of the subject') }),
-        execute: async ({ id_subject }: { id_subject: string }): Promise<Forum[]> => {
-            const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_BY_SUBJECT, {
-                params: { id_subject },
-                headers: authToken ? { Authorization: authToken } : undefined
-            });
-            return response.data.data;
-        },
-    }),
-})
+	webSearch: tool(webSearch()),
+	get_similar_ulasan: tool({
+		description:
+			"Search for similar ulasan (reviews) based on a semantic query. Use this to find reviews about specific topics, lecturers, or subjects.",
+		inputSchema: z.object({
+			query: z.string().describe("The semantic search query"),
+			limit: z.number().optional().default(5).describe("Maximum number of results to return"),
+		}),
+		execute: async ({
+			query,
+			limit,
+		}: {
+			query: string;
+			limit: number;
+		}): Promise<UlasanListItem[]> => {
+			const response = await api.post<SearchResponse>(
+				ULASAN_ENDPOINTS.SEARCH_VECTOR,
+				{ query, limit },
+				{
+					headers: authToken ? { Authorization: authToken } : undefined,
+				}
+			);
+			return (response.data.data as any).results || response.data.data;
+		},
+	}),
+	get_similar_forum: tool({
+		description:
+			"Search for similar forum posts based on a semantic query. Use this to find discussions about specific topics or questions.",
+		inputSchema: z.object({
+			query: z.string().describe("The semantic search query"),
+			limit: z.number().optional().default(5).describe("Maximum number of results to return"),
+		}),
+		execute: async ({ query, limit }: { query: string; limit: number }): Promise<Forum[]> => {
+			const response = await api.post<ForumListResponse>(
+				FORUM_ENDPOINTS.SEARCH_SIMILAR,
+				{ query, limit },
+				{
+					headers: authToken ? { Authorization: authToken } : undefined,
+				}
+			);
+			return (response.data.data as any).results || response.data.data;
+		},
+	}),
+	get_ulasan_detail: tool({
+		description: "Get full content and all replies/comments for a specific ulasan (review).",
+		inputSchema: z.object({ id_review: z.string().describe("The ID of the ulasan") }),
+		execute: async ({ id_review }: { id_review: string }) => {
+			const response = await api.get<UlasanResponse>(ULASAN_ENDPOINTS.GET_BY_ID, {
+				params: { id_review },
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+	get_forum_detail: tool({
+		description: "Get full post content and all comments for a specific forum.",
+		inputSchema: z.object({ id_forum: z.string().describe("The ID of the forum") }),
+		execute: async ({ id_forum }: { id_forum: string }) => {
+			const response = await api.get<ForumDetailResponse>(FORUM_ENDPOINTS.GET_BY_ID, {
+				params: { id_forum },
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+	get_all_lecturers: tool({
+		description: "Get a list of all lecturers in the system to find their names and IDs.",
+		inputSchema: z.object({}),
+		execute: async () => {
+			const response = await api.get<LecturerListResponse>(
+				LECTURER_SUBJECT_ENDPOINTS.GET_LECTURERS,
+				{
+					headers: authToken ? { Authorization: authToken } : undefined,
+				}
+			);
+			return response.data.data;
+		},
+	}),
+	get_all_subjects: tool({
+		description:
+			"Get a list of all academic subjects in the system to find their codes, names, and IDs.",
+		inputSchema: z.object({}),
+		execute: async () => {
+			const response = await api.get<SubjectListResponse>(LECTURER_SUBJECT_ENDPOINTS.GET_SUBJECTS, {
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+	search_ulasan_text: tool({
+		description: "Search for ulasan using a keyword (exact match search).",
+		inputSchema: z.object({ query: z.string().describe("The keyword search query") }),
+		execute: async ({ query }: { query: string }): Promise<UlasanListItem[]> => {
+			const response = await api.get<UlasanListResponse>(ULASAN_ENDPOINTS.SEARCH_TEXT, {
+				params: { q: query },
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+	search_forum_text: tool({
+		description: "Search for forum posts using a keyword (exact match search).",
+		inputSchema: z.object({ query: z.string().describe("The keyword search query") }),
+		execute: async ({ query }: { query: string }): Promise<Forum[]> => {
+			const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.SEARCH, {
+				params: { q: query },
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+	get_forums_by_subject: tool({
+		description: "List all forum posts for a specific academic subject.",
+		inputSchema: z.object({ id_subject: z.string().describe("The ID of the subject") }),
+		execute: async ({ id_subject }: { id_subject: string }): Promise<Forum[]> => {
+			const response = await api.get<ForumListResponse>(FORUM_ENDPOINTS.GET_BY_SUBJECT, {
+				params: { id_subject },
+				headers: authToken ? { Authorization: authToken } : undefined,
+			});
+			return response.data.data;
+		},
+	}),
+});
 
 export type MyTools = InferUITools<ReturnType<typeof getTools>>;
 
-export const createAgent = (authToken?: string) => new Agent({
-    model: google('gemini-2.5-flash-preview-09-2025'),
-    system: `${COMMON_SYSTEM_PROMPT}`,
-    tools: getTools(authToken),
-    stopWhen: stepCountIs(5),
-    toolChoice: 'auto',
-})
-
+export const createAgent = (authToken?: string) =>
+	new Agent({
+		model: google("gemini-2.5-flash-preview-09-2025"),
+		system: `${COMMON_SYSTEM_PROMPT}`,
+		tools: getTools(authToken),
+		stopWhen: stepCountIs(5),
+		toolChoice: "auto",
+	});

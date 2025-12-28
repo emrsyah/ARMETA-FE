@@ -1,0 +1,5 @@
+src/styles.css
+src/routeTree.gen.ts
+node_modules
+dist
+.next
